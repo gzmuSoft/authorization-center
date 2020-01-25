@@ -10,13 +10,10 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
-import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
-import io.vertx.ext.web.handler.JWTAuthHandler
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import kotlinx.coroutines.launch
@@ -31,28 +28,11 @@ class MainVerticle : CoroutineVerticle() {
     router.route().handler(::beforeHandler)
     launch {
       val server = applicationConfig.config().getJsonObject(SERVER)
-      val jwtAuth = JWTAuth.create(vertx, applicationConfig.jwtConfig())
       OauthHandler(
         OAuth2Auth.create(
-          vertx,
-          applicationConfig.oauthConfig()
+          vertx, applicationConfig.oauthConfig()
         ), router, applicationConfig.config().getJsonObject(OAUTH)
       ).router()
-      router.route().handler(JWTAuthHandler.create(jwtAuth))
-      router.route().handler { routingContext ->
-        val authorization = routingContext.request().headers()["Authorization"]
-        if (!authorization.startsWith("Bearer ")) {
-          routingContext.response().setStatusCode(401).end()
-        }
-        val authenticate = jwtAuth.authenticate(
-          JsonObject().put("jwt", authorization.substring(7))
-        )
-        if (!authenticate.succeeded()) {
-          routingContext.response().setStatusCode(401).end()
-        }
-        routingContext.setUser(authenticate.result())
-        routingContext.next()
-      }
       router.route().failureHandler(::exceptionHandler)
       vertx
         .createHttpServer()

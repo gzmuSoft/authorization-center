@@ -5,8 +5,8 @@ oauth:
   token: /oauth/token
   authorization: /oauth/authorize
   token-info: /oauth/check_token
-  client-id: lesson-cloud
-  client-secret: lesson-cloud-secret
+  client-id: gzmu-auth
+  client-secret: gzmu-auth-secret
   redirect-uri: http://127.0.0.1:8081/#/login
   scope: READ
   logout-uri: /oauth/logout

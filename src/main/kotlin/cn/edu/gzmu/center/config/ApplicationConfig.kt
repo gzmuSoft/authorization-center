@@ -21,6 +21,11 @@ import io.vertx.kotlin.core.file.readFileAwait
  */
 class ApplicationConfig(private val vertx: Vertx) {
 
+  /**
+   * Watch config file.
+   *
+   * @return JsonObject result
+   */
   internal suspend fun config(): JsonObject {
     val store =
       ConfigStoreOptions()
@@ -40,6 +45,11 @@ class ApplicationConfig(private val vertx: Vertx) {
         .setAlgorithm("RS256")
     )
 
+  /**
+   * Oauth config options.
+   *
+   * @return OAuth2ClientOptions
+   */
   internal suspend fun oauthConfig(): OAuth2ClientOptions =
     OAuth2ClientOptions(
       JsonObject()
