@@ -20,10 +20,10 @@ class OauthHandler(private val oAuth2Auth: OAuth2Auth,
   fun router() {
     router.get("/oauth/server").handler(this::server)
     router.post("/oauth/token").handler(this::token)
+    router.get("/oauth/logout").handler(this::logoutUrl)
     // The following routes must be authorized.
     router.route().handler(this::authenticate)
     router.post("/oauth/refresh_token").handler(this::refreshToken)
-    router.get("/oauth/logout").handler(this::logoutUrl)
   }
 
   /**
@@ -80,6 +80,17 @@ class OauthHandler(private val oAuth2Auth: OAuth2Auth,
   }
 
   /**
+   * The client logout authorization server url.
+   *
+   * @param context RoutingContext
+   */
+  private fun logoutUrl(context: RoutingContext) {
+    // Logging out is not a Oauth2 feature but it is present on OpenID Connect.
+    // In spring boot security, I have our logout out url, We must let user redirect this url.
+    context.response().end(jsonObjectOf(SERVER to logoutUrl(config)).toBuffer())
+  }
+
+  /**
    * Get new token info by refresh token.
    *
    * @param context RoutingContext
@@ -93,17 +104,6 @@ class OauthHandler(private val oAuth2Auth: OAuth2Auth,
       if (it.failed()) throw UnauthorizedException(it.cause().localizedMessage)
       context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
     }
-  }
-
-  /**
-   * The client logout authorization server url.
-   *
-   * @param context RoutingContext
-   */
-  private fun logoutUrl(context: RoutingContext) {
-    // Logging out is not a Oauth2 feature but it is present on OpenID Connect.
-    // In spring boot security, I have our logout out url, We must let user redirect this url.
-    context.response().end(jsonObjectOf(SERVER to logoutUrl(config)).toBuffer())
   }
 
 }

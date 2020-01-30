@@ -1,0 +1,15 @@
+server:
+  port: 9000
+oauth:
+  server: http://118.24.1.170:8888
+  token: /oauth/token
+  authorization: /oauth/authorize
+  authorization-form: /authorization/form
+  token-info: /oauth/check_token
+  client-id: gzmu-auth
+  client-secret: gzmu-auth-secret
+  redirect-uri: http://127.0.0.1:8081/#/login
+  scope: READ
+  logout-uri: /oauth/logout
+  logout-redirect-url: http://127.0.0.1:8081/#/logout
+  security: false
