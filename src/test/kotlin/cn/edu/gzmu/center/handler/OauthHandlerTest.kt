@@ -43,6 +43,8 @@ class OauthHandlerTest {
 
   private lateinit var client: WebClient
   private lateinit var application: ApplicationConfig
+  private var username: String = "admin"
+  private var password: String = "1997"
 
   @BeforeEach
   fun deployVerticle(vertx: Vertx, testContext: VertxTestContext) {
@@ -75,7 +77,8 @@ class OauthHandlerTest {
   fun `Get token info by authorization code Test`(vertx: Vertx, testContext: VertxTestContext) {
     // launch coroutine.
     GlobalScope.launch(vertx.dispatcher()) {
-      oauthToken(vertx, "access_token")
+      val accessToken = oauthToken(vertx)
+      assertNotNull(accessToken)
       testContext.completeNow()
     }
   }
@@ -117,7 +120,7 @@ class OauthHandlerTest {
    * @param key result key
    * @return response
    */
-  private suspend fun oauthToken(vertx: Vertx, key: String): String {
+  private suspend fun oauthToken(vertx: Vertx, key: String = "access_token"): String {
     val code = oauthCode(vertx)
     val tokenResponse =
       client.post("/oauth/token").sendJsonObjectAwait(jsonObjectOf(CODE to code))
@@ -148,8 +151,9 @@ class OauthHandlerTest {
 
     // 2. Add login form.
     val form: MultiMap = MultiMap.caseInsensitiveMultiMap()
-    form["username"] = "admin"
-    form["password"] = "1997"
+    // You can change username and password.
+    form["username"] = username
+    form["password"] = password
     form["_csrf"] = matcher.group(1)
 
     // 3. Login and save success cookies
@@ -182,6 +186,7 @@ class OauthHandlerTest {
         .sendFormAwait(confirm)
     }
 
+    // 5. Get code from location.
     val codeLocation = URI(response.headers()[HttpHeaderNames.LOCATION])
     val code = codeLocation.query.substringAfter("=")
     assertNotNull(code)
