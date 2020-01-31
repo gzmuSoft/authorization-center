@@ -10,6 +10,8 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
+import io.vertx.core.impl.logging.Logger
+import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
@@ -20,6 +22,8 @@ import kotlinx.coroutines.launch
 import java.lang.RuntimeException
 
 class MainVerticle : CoroutineVerticle() {
+
+  private val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java.name)
 
   override fun start(startFuture: Promise<Void>?) {
     val router = Router.router(vertx)
@@ -39,11 +43,11 @@ class MainVerticle : CoroutineVerticle() {
         .requestHandler(router)
         .listen(server.getInteger("port", 8888)) {
           if (it.succeeded()) {
-            println("Server start......")
+            log.info("Server start......")
             startFuture?.complete()
           } else {
-            println("Server failed......${it.cause().printStackTrace()}")
-            startFuture?.fail("Server failed......")
+            log.error("Server failed......${it.cause().printStackTrace()}")
+            startFuture?.fail(it.cause())
           }
         }
     }
