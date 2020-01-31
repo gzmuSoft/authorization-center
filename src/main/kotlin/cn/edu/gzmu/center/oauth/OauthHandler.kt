@@ -7,6 +7,8 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.kotlin.core.json.jsonObjectOf
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Oauth handler.
@@ -16,6 +18,7 @@ import io.vertx.kotlin.core.json.jsonObjectOf
  */
 class OauthHandler(private val oAuth2Auth: OAuth2Auth,
                    private val router: Router, private val config: JsonObject) {
+  private val log: Logger = LoggerFactory.getLogger(OauthHandler::class.java.name)
 
   fun router() {
     router.get("/oauth/server").handler(this::server)
@@ -40,7 +43,8 @@ class OauthHandler(private val oAuth2Auth: OAuth2Auth,
         "access_token" to authorization.substring(7)
       )
     ) {
-      if (it.failed()) throw UnauthorizedException(it.cause().message)
+      if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
+      log.debug("Login user is: {}", it.result().principal().getString("sub"))
       context.setUser(it.result())
       context.next()
     }
@@ -74,7 +78,7 @@ class OauthHandler(private val oAuth2Auth: OAuth2Auth,
         "redirect_uri" to config.getString(REDIRECT_URI)
       )
     ) {
-      if (it.failed()) throw UnauthorizedException(it.cause().localizedMessage)
+      if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
       context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
     }
   }
@@ -101,7 +105,7 @@ class OauthHandler(private val oAuth2Auth: OAuth2Auth,
     // We have to set it up manually.
     context.user().principal().put("refresh_token", context.bodyAsJson.getString("refresh_token"))
     oAuth2Auth.refresh(context.user()) {
-      if (it.failed()) throw UnauthorizedException(it.cause().localizedMessage)
+      if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
       context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
     }
   }

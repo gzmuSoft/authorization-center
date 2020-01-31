@@ -10,8 +10,6 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
-import io.vertx.core.impl.logging.Logger
-import io.vertx.core.impl.logging.LoggerFactory
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
@@ -19,6 +17,8 @@ import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import kotlinx.coroutines.launch
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.lang.RuntimeException
 
 class MainVerticle : CoroutineVerticle() {
@@ -37,16 +37,16 @@ class MainVerticle : CoroutineVerticle() {
           vertx, applicationConfig.oauthConfig()
         ), router, applicationConfig.config().getJsonObject(OAUTH)
       ).router()
-      router.route().failureHandler(::exceptionHandler)
+      router.route().last().failureHandler(::exceptionHandler)
       vertx
         .createHttpServer()
         .requestHandler(router)
         .listen(server.getInteger("port", 8888)) {
           if (it.succeeded()) {
-            log.info("Server start......")
+            log.info("Server start on port {}......", server.getInteger("port", 8888))
             startFuture?.complete()
           } else {
-            log.error("Server failed......${it.cause().printStackTrace()}")
+            log.error("Server failed......", it.cause())
             startFuture?.fail(it.cause())
           }
         }
@@ -68,7 +68,6 @@ class MainVerticle : CoroutineVerticle() {
       is ForbiddenException -> response.setStatusCode(403).end(message)
     }
   }
-
 }
 
 

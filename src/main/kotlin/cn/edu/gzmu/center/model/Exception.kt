@@ -1,7 +1,7 @@
 package cn.edu.gzmu.center.model
 
 /**
- * .
+ * Exception.
  *
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/1/24 下午4:55
