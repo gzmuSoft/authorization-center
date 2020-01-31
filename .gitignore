@@ -3,6 +3,7 @@
 
 ### Application ###
 log/
+logs/
 file-uploads/
 
 ### Eclipse ###
