@@ -1,4 +1,4 @@
-package cn.edu.gzmu.center
+package cn.edu.gzmu.center.verticle
 
 import cn.edu.gzmu.center.config.ApplicationConfig
 import cn.edu.gzmu.center.model.ForbiddenException
@@ -9,7 +9,6 @@ import cn.edu.gzmu.center.oauth.SERVER
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.core.Promise
-import io.vertx.core.Vertx
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
@@ -21,9 +20,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.RuntimeException
 
-class MainVerticle : CoroutineVerticle() {
+class WebVerticle : CoroutineVerticle() {
 
-  private val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java.name)
+  private val log: Logger = LoggerFactory.getLogger(WebVerticle::class.java.name)
 
   override fun start(startFuture: Promise<Void>?) {
     val router = Router.router(vertx)
@@ -68,9 +67,4 @@ class MainVerticle : CoroutineVerticle() {
       is ForbiddenException -> response.setStatusCode(403).end(message)
     }
   }
-}
-
-
-fun main() {
-  Vertx.vertx().deployVerticle(MainVerticle::class.java.name)
 }
