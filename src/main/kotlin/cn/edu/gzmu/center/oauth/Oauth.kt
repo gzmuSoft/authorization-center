@@ -34,5 +34,3 @@ fun logoutUrl(config: JsonObject): String  {
     else ""
   return url + URLEncoder.encode(param, StandardCharsets.UTF_8)
 }
-
-fun JsonObject.oauth(key: String): String = this.getJsonObject(OAUTH).getString(key)

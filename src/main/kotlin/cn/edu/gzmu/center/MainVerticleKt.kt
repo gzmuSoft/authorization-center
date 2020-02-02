@@ -1,5 +1,6 @@
 package cn.edu.gzmu.center
 
+import io.github.jponge.vertx.boot.BootVerticle
 import io.vertx.core.Vertx
 
 /**
@@ -9,5 +10,5 @@ import io.vertx.core.Vertx
  * @date 2020/2/1 下午4:25
  */
 fun main() {
-  Vertx.vertx().deployVerticle("io.github.jponge.vertx.boot.BootVerticle")
+  Vertx.vertx().deployVerticle(BootVerticle::class.java.name)
 }

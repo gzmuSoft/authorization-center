@@ -1,17 +1,20 @@
 package cn.edu.gzmu.center.config
 
+import cn.edu.gzmu.center.model.database
+import cn.edu.gzmu.center.model.databaseInt
+import cn.edu.gzmu.center.model.oauth
 import cn.edu.gzmu.center.oauth.*
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
 import io.vertx.config.ConfigStoreOptions
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.auth.PubSecKeyOptions
-import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions
 import io.vertx.ext.auth.oauth2.OAuth2FlowType
 import io.vertx.kotlin.config.getConfigAwait
-import io.vertx.kotlin.core.file.readFileAwait
+import io.vertx.kotlin.core.json.jsonObjectOf
+import io.vertx.pgclient.PgConnectOptions
+import io.vertx.sqlclient.PoolOptions
 
 /**
  * .
@@ -38,31 +41,49 @@ class ApplicationConfig(private val vertx: Vertx) {
     return ConfigRetriever.create(vertx, retrieverOptions).getConfigAwait()
   }
 
-  internal suspend fun jwtConfig(): JWTAuthOptions =
-    JWTAuthOptions().addPubSecKey(
-      PubSecKeyOptions()
-        .setBuffer(vertx.fileSystem().readFileAwait("public.txt").toString())
-        .setAlgorithm("RS256")
-    )
 
   /**
    * Oauth config options.
    *
    * @return OAuth2ClientOptions
    */
-  internal suspend fun oauthConfig(): OAuth2ClientOptions =
-    OAuth2ClientOptions(
-      JsonObject()
-        .put("clientID", config().oauth(CLIENT_ID))
-        .put("clientSecret", config().oauth(CLIENT_SECRET))
-        .put("site", config().oauth(SERVER))
-        .put("flow", OAuth2FlowType.AUTH_CODE)
-        .put("tokenPath", config().oauth(TOKEN))
-        .put("authorizationPath", config().oauth(AUTHORIZATION))
-        .put("introspectionPath", config().oauth(TOKEN_INFO))
-        .put("scopeSeparator", ",")
+  internal suspend fun oauthConfig(): OAuth2ClientOptions{
+    val config = config()
+    return OAuth2ClientOptions(
+      jsonObjectOf(
+        "clientID" to config.oauth(CLIENT_ID),
+        "clientSecret" to config.oauth(CLIENT_SECRET),
+        "site" to config.oauth(SERVER),
+        "flow" to OAuth2FlowType.AUTH_CODE,
+        "tokenPath" to config.oauth(TOKEN),
+        "authorizationPath" to config.oauth(AUTHORIZATION),
+        "introspectionPath" to config.oauth(TOKEN_INFO),
+        "scopeSeparator" to ","
+      )
     )
+  }
 
+
+  internal suspend fun databaseConfig(): PgConnectOptions {
+    val config = config()
+    return PgConnectOptions(
+      jsonObjectOf(
+        "port" to config.databaseInt("port", 5432),
+        "host" to config.database("host", "127.0.0.1"),
+        "database" to config.database("database", "public"),
+        "user" to config.database("user", "postgres"),
+        "password" to config.database("password", "postgres")
+      )
+    )
+  }
+
+  internal suspend fun poolConfig(): PoolOptions  {
+    val config = config()
+    return PoolOptions(jsonObjectOf(
+      "maxSize" to config.databaseInt("maxSize", 5),
+      "maxWaitQueueSize" to config.databaseInt("maxWaitQueueSize", -1)
+    ))
+  }
 
 }
 

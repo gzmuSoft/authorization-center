@@ -1,10 +1,10 @@
 package cn.edu.gzmu.center.handler
 
-import cn.edu.gzmu.center.MainVerticle
 import cn.edu.gzmu.center.config.ApplicationConfig
+import cn.edu.gzmu.center.model.oauth
 import cn.edu.gzmu.center.oauth.CODE
 import cn.edu.gzmu.center.oauth.SERVER
-import cn.edu.gzmu.center.oauth.oauth
+import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.MultiMap
 import io.vertx.core.Vertx
@@ -48,7 +48,7 @@ class OauthHandlerTest {
 
   @BeforeEach
   fun deployVerticle(vertx: Vertx, testContext: VertxTestContext) {
-    vertx.deployVerticle(MainVerticle(), testContext.succeeding<String> {
+    vertx.deployVerticle(WebVerticle(), testContext.succeeding<String> {
       // Setting default host and default port.
       // These config come from application.yml,
       // maybe change to git config.

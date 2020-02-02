@@ -24,32 +24,27 @@ class WebVerticle : CoroutineVerticle() {
 
   private val log: Logger = LoggerFactory.getLogger(WebVerticle::class.java.name)
 
-  override fun start(startFuture: Promise<Void>?) {
+  override suspend fun start() {
     val router = Router.router(vertx)
     val applicationConfig = ApplicationConfig(vertx)
     router.route().handler(BodyHandler.create())
     router.route().handler(::beforeHandler)
-    launch {
-      val server = applicationConfig.config().getJsonObject(SERVER)
-      OauthHandler(
-        OAuth2Auth.create(
-          vertx, applicationConfig.oauthConfig()
-        ), router, applicationConfig.config().getJsonObject(OAUTH)
-      ).router()
-      router.route().last().failureHandler(::exceptionHandler)
-      vertx
-        .createHttpServer()
-        .requestHandler(router)
-        .listen(server.getInteger("port", 8888)) {
-          if (it.succeeded()) {
-            log.info("Server start on port {}......", server.getInteger("port", 8888))
-            startFuture?.complete()
-          } else {
-            log.error("Server failed......", it.cause())
-            startFuture?.fail(it.cause())
-          }
+    val server = applicationConfig.config().getJsonObject(SERVER)
+    OauthHandler(
+      OAuth2Auth.create(vertx, applicationConfig.oauthConfig()),
+      router, applicationConfig.config().getJsonObject(OAUTH)
+    ).router()
+    router.route().last().failureHandler(::exceptionHandler)
+    vertx
+      .createHttpServer()
+      .requestHandler(router)
+      .listen(server.getInteger("port", 8888)) {
+        if (it.succeeded()) {
+          log.info("Server start on port {}......", server.getInteger("port", 8888))
+        } else {
+          log.error("Server failed......", it.cause())
         }
-    }
+      }
   }
 
   private fun beforeHandler(context: RoutingContext) {
