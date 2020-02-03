@@ -1,0 +1,10 @@
+$dokka.format:html
+$dokka.linkExtension:html
+$dokka.location:cn.edu.gzmu.center.model$database(io.vertx.core.json.JsonObject, kotlin.String, kotlin.String)cn.edu.gzmu.center.model/io.vertx.core.json.-json-object/database.html
+$dokka.location:cn.edu.gzmu.center.model$databaseInt(io.vertx.core.json.JsonObject, kotlin.String, kotlin.Int)cn.edu.gzmu.center.model/io.vertx.core.json.-json-object/database-int.html
+$dokka.location:cn.edu.gzmu.center.model$oauth(io.vertx.core.json.JsonObject, kotlin.String)cn.edu.gzmu.center.model/io.vertx.core.json.-json-object/oauth.html
+cn.edu.gzmu.center
+cn.edu.gzmu.center.config
+cn.edu.gzmu.center.model
+cn.edu.gzmu.center.oauth
+cn.edu.gzmu.center.verticle

@@ -1,9 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
   kotlin("jvm") version "1.3.61"
   id("io.vertx.vertx-plugin") version "1.0.1"
+  id("org.jetbrains.dokka") version "0.10.0"
 }
 
 group = "cn.edu.gzmu.center"
@@ -46,6 +48,16 @@ compileKotlin.kotlinOptions {
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
   jvmTarget = "11"
+}
+
+tasks {
+  "dokka"(DokkaTask::class) {
+    outputFormat = "html"
+    outputDirectory = "docs/kotlin"
+    configuration {
+      includes = listOf("src/main/resources/packages.md")
+    }
+  }
 }
 
 tasks.withType<Test> {

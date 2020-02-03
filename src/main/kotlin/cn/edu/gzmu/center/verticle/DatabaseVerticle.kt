@@ -1,21 +1,13 @@
 package cn.edu.gzmu.center.verticle
 
 import cn.edu.gzmu.center.config.ApplicationConfig
-import cn.edu.gzmu.center.model.CONFIG_ADDRESS
-import cn.edu.gzmu.center.model.DATABASE
-import cn.edu.gzmu.center.model.database
-import cn.edu.gzmu.center.model.databaseInt
-import io.vertx.core.Promise
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.eventbus.requestAwait
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.sqlclient.getConnectionAwait
-import io.vertx.kotlin.sqlclient.queryAwait
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
-import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -29,6 +21,9 @@ class DatabaseVerticle : CoroutineVerticle() {
 
   private val log: Logger = LoggerFactory.getLogger(DatabaseVerticle::class.java.name)
 
+  /**
+   * Will get config from [ApplicationConfig] and start database connection.
+   */
   override suspend fun start() {
     val config = ApplicationConfig(vertx)
     val connectOptions = config.databaseConfig()
