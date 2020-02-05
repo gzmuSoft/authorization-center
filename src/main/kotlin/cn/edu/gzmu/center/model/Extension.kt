@@ -1,7 +1,6 @@
 package cn.edu.gzmu.center.model
 
 import cn.edu.gzmu.center.oauth.OAUTH
-import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
 /**

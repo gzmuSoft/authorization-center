@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import org.jetbrains.dokka.gradle.DokkaTask
 
@@ -35,19 +34,10 @@ dependencies {
   implementation("io.vertx:vertx-lang-kotlin-coroutines")
   implementation("io.vertx:vertx-consul-client")
   implementation("io.vertx:vertx-lang-kotlin")
+  implementation("io.vertx:vertx-consul-client")
   implementation("io.github.jponge:vertx-boot:$vertxBootVersion")
   implementation("org.apache.logging.log4j:log4j-slf4j18-impl:$log4j2Version")
   testImplementation("io.vertx:vertx-junit5")
-}
-
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-  jvmTarget = "11"
-}
-
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-  jvmTarget = "11"
 }
 
 tasks {
@@ -58,19 +48,18 @@ tasks {
       includes = listOf("src/main/resources/packages.md")
     }
   }
+  compileKotlin {
+    kotlinOptions.jvmTarget = "11"
+  }
+  compileTestKotlin {
+    kotlinOptions.jvmTarget = "11"
+  }
 }
 
 tasks.withType<Test> {
   useJUnitPlatform()
   testLogging {
     events = mutableSetOf(PASSED, FAILED, SKIPPED)
-  }
-}
-
-tasks.withType<KotlinCompile> {
-  kotlinOptions {
-    freeCompilerArgs = listOf("-Xjsr305=strict")
-    jvmTarget = "11"
   }
 }
 
