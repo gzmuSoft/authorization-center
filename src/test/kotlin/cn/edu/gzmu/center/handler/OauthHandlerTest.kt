@@ -1,7 +1,7 @@
 package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.config.ApplicationConfig
-import cn.edu.gzmu.center.model.oauth
+import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.oauth.CODE
 import cn.edu.gzmu.center.oauth.SERVER
 import cn.edu.gzmu.center.verticle.WebVerticle

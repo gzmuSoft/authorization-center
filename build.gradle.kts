@@ -3,6 +3,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
   kotlin("jvm") version "1.3.61"
+  kotlin("plugin.serialization") version "1.3.61"
   id("io.vertx.vertx-plugin") version "1.0.1"
   id("org.jetbrains.dokka") version "0.10.0"
 }
@@ -21,8 +22,11 @@ val mainVerticleName = "cn.edu.gzmu.center.MainVerticle"
 val kotlinVersion by extra { "1.3.61" }
 val log4j2Version by extra { "2.13.0" }
 val vertxBootVersion by extra { "1.1.2" }
+val guavaVersion by extra { "28.2-jre" }
 
 dependencies {
+  implementation(kotlin("reflect"))
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
   implementation("io.vertx:vertx-web-client")
   implementation("io.vertx:vertx-auth-jwt")
   implementation("io.vertx:vertx-auth-oauth2")
@@ -37,6 +41,7 @@ dependencies {
   implementation("io.vertx:vertx-consul-client")
   implementation("io.github.jponge:vertx-boot:$vertxBootVersion")
   implementation("org.apache.logging.log4j:log4j-slf4j18-impl:$log4j2Version")
+  implementation("com.google.guava:guava:$guavaVersion")
   testImplementation("io.vertx:vertx-junit5")
 }
 

@@ -1,8 +1,8 @@
 package cn.edu.gzmu.center.config
 
-import cn.edu.gzmu.center.model.database
-import cn.edu.gzmu.center.model.databaseInt
-import cn.edu.gzmu.center.model.oauth
+import cn.edu.gzmu.center.model.extension.database
+import cn.edu.gzmu.center.model.extension.databaseInt
+import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.oauth.*
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions

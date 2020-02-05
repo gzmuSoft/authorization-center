@@ -1,4 +1,4 @@
-package cn.edu.gzmu.center.model
+package cn.edu.gzmu.center.model.extension
 
 /**
  * .
@@ -7,3 +7,4 @@ package cn.edu.gzmu.center.model
  * @date 2020/2/2 下午11:35
  */
 const val CONFIG_ADDRESS = "authorization-center-config"
+const val DATABASE = "database"
