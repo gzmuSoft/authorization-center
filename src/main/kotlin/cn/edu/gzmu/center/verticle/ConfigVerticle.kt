@@ -1,6 +1,6 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.model.extension.CONFIG_ADDRESS
+import cn.edu.gzmu.center.model.extension.Address.Companion.CONFIG_ADDRESS
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
 import io.vertx.config.ConfigStoreOptions

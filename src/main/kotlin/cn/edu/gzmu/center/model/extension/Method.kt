@@ -1,8 +1,11 @@
 package cn.edu.gzmu.center.model.extension
 
-import cn.edu.gzmu.center.oauth.OAUTH
+import cn.edu.gzmu.center.model.extension.Address.Companion.DATABASE
+import cn.edu.gzmu.center.oauth.Oauth.Companion.OAUTH
 import com.google.common.base.CaseFormat
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.json.get
 import io.vertx.sqlclient.Row
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
@@ -16,13 +19,17 @@ import kotlin.reflect.full.primaryConstructor
  * @date 2020/2/1 下午9:04
  */
 
-fun JsonObject.oauth(key: String): String = this.getJsonObject(OAUTH).getString(key)
+fun JsonObject.oauth(key: String): String =
+  this.getJsonObject(OAUTH).getString(key)
 
 fun JsonObject.database(key: String, default: String = ""): String =
   this.getJsonObject(DATABASE).getString(key, default)
 
 fun JsonObject.databaseInt(key: String, default: Int = 5432): Int =
   this.getJsonObject(DATABASE).getInteger(key, default)
+
+inline fun <reified To : Any> JsonArray.toTypeArray(): Array<To> =
+  Array(this.size()) { this.get<To>(it) }
 
 /**
  * In default, we want to mapper result by one to one field.

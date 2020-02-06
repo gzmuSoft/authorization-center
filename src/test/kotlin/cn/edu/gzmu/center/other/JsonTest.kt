@@ -3,7 +3,7 @@ package cn.edu.gzmu.center.other
 import cn.edu.gzmu.center.model.extension.KotlinJson
 import cn.edu.gzmu.center.model.entity.SysUser
 import io.vertx.kotlin.core.json.jsonObjectOf
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/5 下午5:26
  */
-class JsonTest {
+@Suppress("SpellCheckingInspection")
+internal class JsonTest {
 
   @Test
   internal fun `Mapping json to entity and entity to json when passed`() {

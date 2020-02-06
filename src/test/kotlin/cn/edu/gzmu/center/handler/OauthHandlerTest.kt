@@ -2,8 +2,6 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.config.ApplicationConfig
 import cn.edu.gzmu.center.model.extension.oauth
-import cn.edu.gzmu.center.oauth.CODE
-import cn.edu.gzmu.center.oauth.SERVER
 import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.MultiMap
@@ -67,7 +65,7 @@ class OauthHandlerTest {
       .`as`(BodyCodec.jsonObject())
       .send {
         if (it.succeeded()) {
-          assertTrue(it.result().body().containsKey(SERVER))
+          assertTrue(it.result().body().containsKey("server"))
           testContext.completeNow()
         } else testContext.failNow(it.cause())
       }
@@ -88,7 +86,7 @@ class OauthHandlerTest {
     client.get("/oauth/logout").send {
       if (it.succeeded()) {
         val result = it.result().bodyAsJsonObject()
-        assertTrue(result.containsKey(SERVER))
+        assertTrue(result.containsKey("server"))
         testContext.completeNow()
       } else {
         testContext.failNow(it.cause())
@@ -120,10 +118,10 @@ class OauthHandlerTest {
    * @param key result key
    * @return response
    */
-  private suspend fun oauthToken(vertx: Vertx, key: String = "access_token"): String {
+  protected suspend fun oauthToken(vertx: Vertx, key: String = "access_token"): String {
     val code = oauthCode(vertx)
     val tokenResponse =
-      client.post("/oauth/token").sendJsonObjectAwait(jsonObjectOf(CODE to code))
+      client.post("/oauth/token").sendJsonObjectAwait(jsonObjectOf("code" to code))
     val token = tokenResponse.bodyAsJsonObject()
     assertTrue(token.containsKey(key))
     return token.getString(key)
@@ -135,16 +133,16 @@ class OauthHandlerTest {
    * @param vertx need vertx to create webclient
    */
   private suspend fun oauthCode(vertx: Vertx): String {
-    val clientId = application.config().oauth("client-id")
-    val clientSecret = application.config().oauth("client-secret")
-    val secret = "Basic " + Base64.getEncoder().encode("$clientId:$clientSecret".toByteArray())
     val config = application.config()
+    val clientId = config.oauth("client-id")
+    val clientSecret = config.oauth("client-secret")
+    val secret = "Basic " + Base64.getEncoder().encode("$clientId:$clientSecret".toByteArray())
 
     // 1. Get login page, save _csrf value.
     val serverResponse = client.get(9000, "localhost", "/oauth/server").sendAwait()
     val oauthServer = WebClientSession.create(WebClient.create(vertx))
     oauthServer.addHeader(HttpHeaderNames.AUTHORIZATION.toString(), secret)
-    val loginResponse = oauthServer.getAbs(serverResponse.bodyAsJsonObject().getString(SERVER)).sendAwait()
+    val loginResponse = oauthServer.getAbs(serverResponse.bodyAsJsonObject().getString("server")).sendAwait()
     val matcher = Pattern.compile("(?s).*name=\"_csrf\".*?value=\"([^\"]+).*")
       .matcher(loginResponse.bodyAsString())
     assertTrue(matcher.find(1))

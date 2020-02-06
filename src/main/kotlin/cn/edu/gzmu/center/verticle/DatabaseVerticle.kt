@@ -1,6 +1,13 @@
 package cn.edu.gzmu.center.verticle
 
 import cn.edu.gzmu.center.config.ApplicationConfig
+import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
+import cn.edu.gzmu.center.me.MeRepository
+import cn.edu.gzmu.center.me.MeRepositoryImpl
+import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
+import cn.edu.gzmu.center.oauth.OauthRepository
+import cn.edu.gzmu.center.oauth.OauthRepositoryImpl
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
@@ -8,6 +15,8 @@ import io.vertx.kotlin.sqlclient.getConnectionAwait
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
+import io.vertx.sqlclient.SqlConnection
+import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -20,6 +29,7 @@ import org.slf4j.LoggerFactory
 class DatabaseVerticle : CoroutineVerticle() {
 
   private val log: Logger = LoggerFactory.getLogger(DatabaseVerticle::class.java.name)
+  private lateinit var connection: SqlConnection
 
   /**
    * Will get config from [ApplicationConfig] and start database connection.
@@ -30,10 +40,23 @@ class DatabaseVerticle : CoroutineVerticle() {
     val poolOptions = config.poolConfig()
     val client = PgPool.pool(vertx, connectOptions, poolOptions)
     try {
-      val connection = client.getConnectionAwait()
+      connection = client.getConnectionAwait()
+      meHandles()
       log.info("Success start database verticle......")
     } catch (e: Exception) {
       log.error("Failed start database verticle!", e.cause)
+    }
+  }
+
+  private suspend fun meHandles() {
+    val eventBus = vertx.eventBus()
+    val oauthRepository: OauthRepository = OauthRepositoryImpl(connection)
+    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_RESOURCE) {
+      launch { oauthRepository.roleResource(it) }
+    }
+    val meRepository: MeRepository = MeRepositoryImpl(connection)
+    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_ROUTES) {
+      launch { meRepository.roleRoutes(it) }
     }
   }
 
@@ -56,4 +79,7 @@ class DatabaseVerticle : CoroutineVerticle() {
       )
     )
 
+  override suspend fun stop() {
+    connection.close()
+  }
 }

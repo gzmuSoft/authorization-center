@@ -4,6 +4,7 @@ oauth:
   server: http://118.24.1.170:8888
   token: /oauth/token
   authorization: /oauth/authorize
+  # Test need this!!!!!!
   authorization-form: /authorization/form
   token-info: /oauth/check_token
   client-id: gzmu-auth
@@ -13,3 +14,10 @@ oauth:
   logout-uri: /oauth/logout
   logout-redirect-url: http://127.0.0.1:8081/#/logout
   security: false
+database:
+  port: 5432
+  host: 118.24.1.170
+  database: gzmu
+  user: postgres
+  password:
+  maxSize: 20

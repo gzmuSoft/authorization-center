@@ -3,7 +3,12 @@ package cn.edu.gzmu.center.config
 import cn.edu.gzmu.center.model.extension.database
 import cn.edu.gzmu.center.model.extension.databaseInt
 import cn.edu.gzmu.center.model.extension.oauth
-import cn.edu.gzmu.center.oauth.*
+import cn.edu.gzmu.center.oauth.Oauth.Companion.AUTHORIZATION
+import cn.edu.gzmu.center.oauth.Oauth.Companion.CLIENT_ID
+import cn.edu.gzmu.center.oauth.Oauth.Companion.CLIENT_SECRET
+import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
+import cn.edu.gzmu.center.oauth.Oauth.Companion.TOKEN
+import cn.edu.gzmu.center.oauth.Oauth.Companion.TOKEN_INFO
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
 import io.vertx.config.ConfigStoreOptions
@@ -17,7 +22,7 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.sqlclient.PoolOptions
 
 /**
- * .
+ * Get Application.
  *
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/1/23 上午10:32
@@ -30,6 +35,7 @@ class ApplicationConfig(private val vertx: Vertx) {
    * @return JsonObject result
    */
   internal suspend fun config(): JsonObject {
+    // TODO: Wait for improve code.
     val store =
       ConfigStoreOptions()
         .setType("file")
@@ -62,7 +68,6 @@ class ApplicationConfig(private val vertx: Vertx) {
       )
     )
   }
-
 
   internal suspend fun databaseConfig(): PgConnectOptions {
     val config = config()

@@ -1,11 +1,12 @@
 package cn.edu.gzmu.center.verticle
 
 import cn.edu.gzmu.center.config.ApplicationConfig
+import cn.edu.gzmu.center.me.MeHandler
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
-import cn.edu.gzmu.center.oauth.OAUTH
+import cn.edu.gzmu.center.oauth.Oauth.Companion.OAUTH
+import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
 import cn.edu.gzmu.center.oauth.OauthHandler
-import cn.edu.gzmu.center.oauth.SERVER
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.ext.auth.oauth2.OAuth2Auth
@@ -37,10 +38,12 @@ class WebVerticle : CoroutineVerticle() {
     router.route().handler(BodyHandler.create())
     router.route().handler(::beforeHandler)
     val server = applicationConfig.config().getJsonObject(SERVER)
+    val eventBus = vertx.eventBus()
     OauthHandler(
       OAuth2Auth.create(vertx, applicationConfig.oauthConfig()),
-      router, applicationConfig.config().getJsonObject(OAUTH)
-    ).router()
+      router, applicationConfig.config().getJsonObject(OAUTH), eventBus
+    )
+    MeHandler(router, eventBus)
     router.route().last().failureHandler(::exceptionHandler)
     vertx
       .createHttpServer()
