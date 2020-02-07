@@ -540,6 +540,62 @@ define({ "api": [
   },
   {
     "type": "GET",
+    "url": "/me/info",
+    "title": "user info",
+    "version": "1.0.0",
+    "name": "UserInfo",
+    "description": "<p>Get current user info, student or user.</p>",
+    "group": "User",
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "curl --location --request GET 'http://127.0.0.1:8889/me/info'\n  --header 'Authorization: Bearer token'",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": true,
+            "field": "name",
+            "description": "<p>route name, always true.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Student:",
+          "content": "HTTP/1.1 200 OK\n{\n    \"id\": 2,\n    \"name\": \"林国瑞\",\n    \"spell\": \"lín guó ruì \",\n    \"userId\": 2,\n    \"schoolId\": 1,\n    \"collegeId\": 2,\n    \"depId\": 45,\n    \"specialtyId\": 48,\n    \"classesId\": 49,\n    \"no\": \"201742060002\",\n    \"gender\": \"男\",\n    \"idNumber\": \"522526202002050002\",\n    \"birthday\": \"2020-02-05\",\n    \"enterDate\": \"2017-09-01\",\n    \"academic\": \"本科\",\n    \"graduationDate\": \"2021-06-30\",\n    \"graduateInstitution\": \"无\",\n    \"originalMajor\": \"无\",\n    \"resume\": \"我是一个学生\",\n    \"sort\": 19,\n    \"createUser\": \"yms\",\n    \"createTime\": \"2019-08-07 16:40:28\",\n    \"modifyUser\": \"yms\",\n    \"modifyTime\": \"2019-08-07 16:40:28\",\n    \"remark\": \"这是一个学生\",\n    \"isEnable\": true\n}",
+          "type": "json"
+        },
+        {
+          "title": "Teacher:",
+          "content": "HTTP/1.1 200 OK\n{\n    \"id\": 3,\n    \"name\": \"李开富\",\n    \"spell\": \"lǐ kāi fù \",\n    \"userId\": 3,\n    \"schoolId\": 1,\n    \"collegeId\": 2,\n    \"depId\": 3,\n    \"gender\": \"男\",\n    \"birthday\": \"2020-02-05\",\n    \"graduationDate\": \"2020-06-01\",\n    \"profTitleAssDate\": null,\n    \"workDate\": null,\n    \"nation\": \"China\",\n    \"degree\": null,\n    \"academic\": \"博士\",\n    \"major\": \"图书管理学专业\",\n    \"profTitle\": null,\n    \"graduateInstitution\": \"工程管理学院\",\n    \"majorResearch\": \"混日子\",\n    \"resume\": \"这是一位教师\",\n    \"subjectCategory\": null,\n    \"idNumber\": \"522501194910010007\",\n    \"isAcademicLeader\": false,\n    \"sort\": 89,\n    \"createUser\": \"yms\",\n    \"createTime\": \"2020-01-18 10:22:07\",\n    \"modifyUser\": \"yms\",\n    \"modifyTime\": \"2020-01-18 10:22:07\",\n    \"remark\": \"这是一位大学教师\",\n    \"isEnable\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "src/main/kotlin/cn/edu/gzmu/center/me/MeHandler.kt",
+    "groupTitle": "User",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "GET",
     "url": "/me/menu",
     "title": "user menu",
     "version": "1.0.0",

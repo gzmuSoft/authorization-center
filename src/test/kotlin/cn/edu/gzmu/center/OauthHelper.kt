@@ -29,7 +29,7 @@ import java.util.*
  * @date 2020/2/6 下午10:15
  */
 @ExtendWith(VertxExtension::class)
-open class OauthHelper(private var username: String = "admin", private var password: String = "1997") {
+open class OauthHelper(var username: String = "admin", var password: String = "1997") {
 
   constructor() : this("admin", "1997")
 
@@ -54,7 +54,7 @@ open class OauthHelper(private var username: String = "admin", private var passw
    * Get token by password method.
    * Client must support password grant type.
    */
-  private suspend fun oauthToken(vertx: Vertx) {
+  protected suspend fun oauthToken(vertx: Vertx) {
     val clientId = webConfig.oauth("client-id")
     val clientSecret = webConfig.oauth("client-secret")
     val secret = "Basic " + String(Base64.getEncoder().encode("$clientId:$clientSecret".toByteArray()))

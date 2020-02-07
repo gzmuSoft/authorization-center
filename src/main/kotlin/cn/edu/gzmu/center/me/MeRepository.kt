@@ -1,14 +1,20 @@
 package cn.edu.gzmu.center.me
 
+import cn.edu.gzmu.center.model.entity.Student
+import cn.edu.gzmu.center.model.entity.Teacher
+import cn.edu.gzmu.center.model.extension.toJsonObject
 import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonArrayOf
 import io.vertx.kotlin.core.json.jsonObjectOf
+import io.vertx.kotlin.sqlclient.preparedQueryAwait
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.lang.Exception
 
 /**
  * .
@@ -30,6 +36,15 @@ interface MeRepository {
    */
   fun roleMenu(message: Message<JsonArray>)
 
+  /**
+   * Get current user info by entity type.
+   * Roles come from [message] body.
+   * It has two key - value
+   * - student: Boolean
+   * - teacher: Boolean
+   * - username: String
+   */
+  suspend fun meInfo(message: Message<JsonObject>)
 
 }
 
@@ -56,6 +71,9 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
          AND acr.method IS NOT NULL AND acr.is_enable = true
          AND ( sr.name = any ($1) OR sr.name = 'ROLE_PUBLIC')
     """.trimIndent()
+    const val STUDENT_BY_USER = "SELECT * FROM student WHERE user_id = $1 AND is_enable = true"
+    const val TEACHER_BY_USER = "SELECT * FROM teacher WHERE user_id = $1 AND is_enable = true"
+    const val USER_BY_NAME = "SELECT u.id FROM sys_user u WHERE u.name = $1 AND u.is_enable = true"
   }
 
   override fun roleRoutes(message: Message<JsonArray>) {
@@ -87,13 +105,53 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
         )
       }.groupBy { json -> json.getString("remark") }
         .forEach { (key, value) ->
-          result.add(jsonObjectOf(
-            "name" to key,
-            "children" to value
-          ))
+          result.add(
+            jsonObjectOf(
+              "name" to key,
+              "children" to value
+            )
+          )
         }
       log.debug("Success get role menu: {}", result)
       message.reply(jsonObjectOf("menus" to result))
     }
   }
+
+  override suspend fun meInfo(message: Message<JsonObject>) {
+    val body = message.body()
+    val student = body.getBoolean("student")
+    val teacher = body.getBoolean("teacher")
+    val username = body.getString("username")
+    try {
+      val rows = connection.preparedQueryAwait(USER_BY_NAME, Tuple.of(username))
+      if (rows.rowCount() == 0) message.reply(JsonObject())
+      val tuple = Tuple.of(rows.first().getLong("id"))
+      val result = when {
+        student -> studentInfo(tuple)
+        teacher -> teacherInfo(tuple)
+        else -> JsonObject()
+      }
+      log.debug("Success get user info: {}", result)
+      message.reply(result)
+    } catch (e: Exception) {
+      message.fail(500, e.localizedMessage)
+      throw e
+    }
+  }
+
+  @Throws(Exception::class)
+  private suspend fun studentInfo(userId: Tuple): JsonObject {
+    val rowSet = connection.preparedQueryAwait(STUDENT_BY_USER, userId)
+    return if (rowSet.size() == 0) JsonObject()
+    else rowSet.first().toJsonObject<Student>()
+  }
+
+  @Throws(Exception::class)
+  private suspend fun teacherInfo(userId: Tuple): JsonObject {
+    val rowSet = connection.preparedQueryAwait(TEACHER_BY_USER, userId)
+    return if (rowSet.size() == 0) JsonObject()
+    else rowSet.first().toJsonObject<Teacher>()
+  }
+
+
 }

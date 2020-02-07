@@ -1,13 +1,14 @@
 package cn.edu.gzmu.center.me
 
+import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ME_INFO
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_MENU
-import cn.edu.gzmu.center.model.DatabaseException
-import io.netty.handler.codec.http.HttpResponseStatus
+import cn.edu.gzmu.center.model.extension.handleResult
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.kotlin.core.json.jsonObjectOf
 
 /**
  * User handler.
@@ -21,6 +22,7 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
   init {
     router.get("/me/routes").handler { this.routes(it, ADDRESS_ROLE_ROUTES) }
     router.get("/me/menu").handler { this.routes(it, ADDRESS_ROLE_MENU) }
+    router.get("/me/info").handler(::info)
   }
 
   /**
@@ -68,12 +70,91 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
    */
   private fun routes(context: RoutingContext, address: String) {
     val roles = context.user().principal().getJsonArray("authorities")
-    eventBus.request<JsonObject>(address, roles) {
-      if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
-      context.response()
-        .setStatusCode(HttpResponseStatus.OK.code())
-        .end(it.result().body().toString())
-    }
+    eventBus.request<JsonObject>(address, roles) { handleResult(context, it) }
   }
 
+  /**
+   * @api {GET} /me/info user info
+   * @apiVersion 1.0.0
+   * @apiName UserInfo
+   * @apiDescription Get current user info, student or user.
+   * @apiGroup User
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/me/info'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {Boolean}   [name ]      route name, always true.
+   * @apiSuccessExample {json} Student:
+   *      HTTP/1.1 200 OK
+   *      {
+   *          "id": 2,
+   *          "name": "林国瑞",
+   *          "spell": "lín guó ruì ",
+   *          "userId": 2,
+   *          "schoolId": 1,
+   *          "collegeId": 2,
+   *          "depId": 45,
+   *          "specialtyId": 48,
+   *          "classesId": 49,
+   *          "no": "201742060002",
+   *          "gender": "男",
+   *          "idNumber": "522526202002050002",
+   *          "birthday": "2020-02-05",
+   *          "enterDate": "2017-09-01",
+   *          "academic": "本科",
+   *          "graduationDate": "2021-06-30",
+   *          "graduateInstitution": "无",
+   *          "originalMajor": "无",
+   *          "resume": "我是一个学生",
+   *          "sort": 19,
+   *          "createUser": "yms",
+   *          "createTime": "2019-08-07 16:40:28",
+   *          "modifyUser": "yms",
+   *          "modifyTime": "2019-08-07 16:40:28",
+   *          "remark": "这是一个学生",
+   *          "isEnable": true
+   *      }
+   * @apiSuccessExample {json} Teacher:
+   *      HTTP/1.1 200 OK
+   *      {
+   *          "id": 3,
+   *          "name": "李开富",
+   *          "spell": "lǐ kāi fù ",
+   *          "userId": 3,
+   *          "schoolId": 1,
+   *          "collegeId": 2,
+   *          "depId": 3,
+   *          "gender": "男",
+   *          "birthday": "2020-02-05",
+   *          "graduationDate": "2020-06-01",
+   *          "profTitleAssDate": null,
+   *          "workDate": null,
+   *          "nation": "China",
+   *          "degree": null,
+   *          "academic": "博士",
+   *          "major": "图书管理学专业",
+   *          "profTitle": null,
+   *          "graduateInstitution": "工程管理学院",
+   *          "majorResearch": "混日子",
+   *          "resume": "这是一位教师",
+   *          "subjectCategory": null,
+   *          "idNumber": "522501194910010007",
+   *          "isAcademicLeader": false,
+   *          "sort": 89,
+   *          "createUser": "yms",
+   *          "createTime": "2020-01-18 10:22:07",
+   *          "modifyUser": "yms",
+   *          "modifyTime": "2020-01-18 10:22:07",
+   *          "remark": "这是一位大学教师",
+   *          "isEnable": true
+   *      }
+   */
+  private fun info(context: RoutingContext) {
+    val student = context.user().principal().getBoolean("is_student")
+    val teacher = context.user().principal().getBoolean("is_teacher")
+    val username = context.user().principal().getString("user_name")
+    eventBus.request<JsonObject>(
+      ADDRESS_ME_INFO, jsonObjectOf("student" to student, "teacher" to teacher, "username" to username)
+    ) { handleResult(context, it) }
+  }
 }

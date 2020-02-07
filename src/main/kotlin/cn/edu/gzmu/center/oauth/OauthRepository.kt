@@ -1,7 +1,6 @@
 package cn.edu.gzmu.center.oauth
 
 import cn.edu.gzmu.center.model.extension.Address.Companion.RESULT
-import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray

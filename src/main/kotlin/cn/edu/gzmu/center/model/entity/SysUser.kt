@@ -12,24 +12,24 @@ import java.time.LocalDateTime
  */
 @Serializable
 data class SysUser(
-  val id: Long?,
-  val name: String?,
-  val spell: String?,
-  val password: String?,
-  val status: String?,
-  val image: String?,
-  val avatar: String?,
-  val email: String?,
-  val phone: String?,
+  val id: Long? = null,
+  val name: String? = null,
+  val spell: String? = null,
+  val password: String? = null,
+  val status: String? = null,
+  val image: String? = null,
+  val avatar: String? = null,
+  val email: String? = null,
+  val phone: String? = null,
   val onlineStatus: Boolean = false,
   val sort: Long = 1,
-  val createUser: String?,
+  val createUser: String? = null,
   @Serializable(with = LocalDateTimeSerializer::class)
   val createTime: LocalDateTime = LocalDateTime.now(),
-  val modifyUser: String?,
+  val modifyUser: String? = null,
   @Serializable(with = LocalDateTimeSerializer::class)
   val modifyTime: LocalDateTime = LocalDateTime.now(),
-  val remark: String?,
+  val remark: String? = null,
   val isEnable: Boolean = false
 )
 
