@@ -1,0 +1,9 @@
+{
+  "name": "Authorization Center",
+  "version": "1.0.0",
+  "description": "贵州民族大学授权中心",
+  "title": "Authorization Center",
+  "order": [
+    "Oauth"
+  ]
+}

@@ -1,0 +1,18 @@
+define({
+  "name": "Authorization Center",
+  "version": "1.0.0",
+  "description": "贵州民族大学授权中心",
+  "title": "Authorization Center",
+  "order": [
+    "Oauth"
+  ],
+  "sampleUrl": false,
+  "defaultVersion": "0.0.0",
+  "apidoc": "0.3.0",
+  "generator": {
+    "name": "apidoc",
+    "time": "2020-02-07T14:27:53.109Z",
+    "url": "http://apidocjs.com",
+    "version": "0.20.0"
+  }
+});

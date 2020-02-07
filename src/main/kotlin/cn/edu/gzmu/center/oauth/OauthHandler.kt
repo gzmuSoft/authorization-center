@@ -32,6 +32,10 @@ import java.util.*
 /**
  * Oauth handler.
  *
+ * @apiDefine Bearer
+ * @apiHeader {String} Authorization Bearer token.
+ *
+ *
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/1/23 上午11:44
  */
@@ -49,9 +53,9 @@ class OauthHandler(
     // The following routes must be authorized.
     router.route().handler(::authenticate)
     // These api can access for all users.
-    router.get("/oauth/me").handler(::me)
     router.post("/oauth/check_token").handler(::checkToken)
     router.post("/oauth/refresh_token").handler(::refreshToken)
+    router.get("/oauth/me").handler(::me)
     // Add RBAC
     router.route().handler(::authentication)
   }
@@ -76,7 +80,19 @@ class OauthHandler(
   }
 
   /**
-   * Get remote authorization server url.
+   * @api {GET} /oauth/server oauth server login
+   * @apiVersion 1.0.0
+   * @apiName OauthLogin
+   * @apiDescription Get remote authorization server logout url.
+   * @apiGroup Oauth
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/oauth/server'
+   * @apiSuccess {String}   server    authorization server login url.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "server": "http://......"
+   *      }
    */
   private fun server(context: RoutingContext) {
     val authorizeURL = oAuth2Auth.authorizeURL(
@@ -89,7 +105,44 @@ class OauthHandler(
   }
 
   /**
-   * Get token info by authorization code.
+   * @api {POST} /oauth/token oauth code token
+   * @apiVersion 1.0.0
+   * @apiName OauthTokenCode
+   * @apiDescription Get token info by authorization code.
+   * @apiParam {String} code authorization code.
+   * @apiGroup Oauth
+   * @apiSuccess {String}   access_token    token.
+   * @apiSuccess {String}   token_type      always bearer.
+   * @apiSuccess {String}   refresh_token   refresh token.
+   * @apiSuccess {Long}     expires_in      expires times.
+   * @apiSuccess {String}   sub             user name.
+   * @apiSuccess {Boolean}  is_teacher      if have ROLE_TEACHER.
+   * @apiSuccess {Boolean}  is_student      if have ROLE_STUDENT.
+   * @apiSuccess {String}   user_name       user name.
+   * @apiSuccess {Long}     nbf             not before.
+   * @apiSuccess {Long}     iat             issued at.
+   * @apiSuccess {String[]} authorities     user authorities.
+   * @apiSuccess {String}   jti             JWT ID.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "access_token": "......",
+   *        "token_type": "bearer",
+   *        "refresh_token": "......",
+   *        "expires_in": 586103,
+   *        "scope": "...",
+   *        "sub": "admin",
+   *        "nbf": 1581047798,
+   *        "is_teacher": false,
+   *        "user_name": "admin",
+   *        "iat": 1581047798,
+   *        "is_student": true,
+   *        "authorities": [
+   *          "ROLE_ADMIN",
+   *          "ROLE_STUDENT"
+   *        ],
+   *        "jti": "..."
+   *      }
    */
   private fun token(context: RoutingContext) {
     val code = context.bodyAsJson.getString(CODE)
@@ -105,7 +158,20 @@ class OauthHandler(
   }
 
   /**
-   * The client logout authorization server url.
+   * @api {GET} /oauth/logout oauth server logout
+   * @apiVersion 1.0.0
+   * @apiName OauthLogout
+   * @apiDescription Get remote authorization server logout url.
+   *                  The client logout authorization server url.
+   * @apiGroup Oauth
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/oauth/logout'
+   * @apiSuccess {String}   server    authorization server logout url.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "server": "http://......"
+   *      }
    */
   private fun logoutUrl(context: RoutingContext) {
     val url = config.getString(SERVER) + config.getString(LOGOUT_URI)
@@ -118,14 +184,99 @@ class OauthHandler(
   }
 
   /**
-   * Get token info.
+   * @api {POST} /oauth/check_token oauth server check token
+   * @apiVersion 1.0.0
+   * @apiName OauthCheckToken
+   * @apiDescription Get token info.
+   * @apiGroup Oauth
+   * @apiExample Example usage:
+   *      curl --location --request POST 'http://127.0.0.1:8889/oauth/check_token' \
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {String}    sub            user name.
+   * @apiSuccess {String}    user_name      user name.
+   * @apiSuccess {Boolean}   active         token active.
+   * @apiSuccess {Boolean}   is_student     if has ROLE_STUDENT.
+   * @apiSuccess {Boolean}   is_teacher     if has ROLE_TEACHER.
+   * @apiSuccess {String[]}  authorities    user roles.
+   * @apiSuccess {String}    client_id      client id.
+   * @apiSuccess {String[]}  aud            client id.
+   * @apiSuccess {Long}      nbf            not before.
+   * @apiSuccess {String[]}  scope          client scopes.
+   * @apiSuccess {Long}      exp            expires times.
+   * @apiSuccess {Long}      iat            issue at times.
+   * @apiSuccess {String}    jti            jwt id.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *       {
+   *         "sub": "admin",
+   *         "user_name": "admin",
+   *         "active": true,
+   *         "is_student": true,
+   *         "authorities": [
+   *           "ROLE_ADMIN",
+   *           "ROLE_STUDENT"
+   *         ],
+   *         "client_id": "gzmu-auth",
+   *         "aud": [
+   *           "gzmu-auth"
+   *         ],
+   *         "nbf": 1581047798,
+   *         "is_teacher": false,
+   *         "scope": [
+   *           "READ"
+   *         ],
+   *         "exp": 1581647798,
+   *         "iat": 1581047798,
+   *         "jti": "aafe976b-e360-4148-8d45-4553b33703bc"
+   *       }
    */
   private fun checkToken(context: RoutingContext) {
     context.response().end(context.user().principal().toString())
   }
 
   /**
-   * Get new token info by refresh token.
+   * @api {POST} /oauth/refresh_token  oauth server refresh token
+   * @apiVersion 1.0.0
+   * @apiName OauthRefreshToken
+   * @apiDescription Get new token info by refresh token.
+   * @apiGroup Oauth
+   * @apiExample Example usage:
+   *      curl --location --request POST 'http://127.0.0.1:8889/oauth/refresh_token' \
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {String}   access_token    token.
+   * @apiSuccess {String}   token_type      always bearer.
+   * @apiSuccess {String}   refresh_token   refresh token.
+   * @apiSuccess {Long}     expires_in      expires times.
+   * @apiSuccess {String}   sub             user name.
+   * @apiSuccess {Boolean}  is_teacher      if have ROLE_TEACHER.
+   * @apiSuccess {Boolean}  is_student      if have ROLE_STUDENT.
+   * @apiSuccess {String}   user_name       user name.
+   * @apiSuccess {Long}     nbf             not before.
+   * @apiSuccess {Long}     iat             issued at.
+   * @apiSuccess {String[]} authorities     user authorities.
+   * @apiSuccess {String}   jti             JWT ID.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "access_token": "......",
+   *        "token_type": "bearer",
+   *        "refresh_token": "......",
+   *        "expires_in": 586103,
+   *        "scope": "...",
+   *        "sub": "admin",
+   *        "nbf": 1581047798,
+   *        "is_teacher": false,
+   *        "user_name": "admin",
+   *        "iat": 1581047798,
+   *        "is_student": true,
+   *        "authorities": [
+   *          "ROLE_ADMIN",
+   *          "ROLE_STUDENT"
+   *        ],
+   *        "jti": "..."
+   *      }
    */
   private fun refreshToken(context: RoutingContext) {
     // In default implementation, it will get refresh token from context user, but
@@ -165,7 +316,29 @@ class OauthHandler(
   }
 
   /**
-   * Current user info.
+   * @api {GET} /oauth/me oauth me
+   * @apiVersion 1.0.0
+   * @apiName OauthMe
+   * @apiDescription Current user info.
+   * @apiGroup Oauth
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/oauth/me'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {String}   name      user name.
+   * @apiSuccess {String}   email     user email.
+   * @apiSuccess {String}   avatar    user avatar.
+   * @apiSuccess {String}   image     user image.
+   * @apiSuccess {String}   phone     user phone.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "name": "admin",
+   *        "email": "lizhongyue248@163.com",
+   *        "avatar": "http://image.japoul.cn/me.jpg",
+   *        "image": "http://image.japoul.cn/me.jpg",
+   *        "phone": "13765308262"
+   *      }
    */
   private fun me(context: RoutingContext) {
     val username = context.user().principal().getString("sub")

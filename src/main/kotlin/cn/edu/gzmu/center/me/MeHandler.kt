@@ -10,8 +10,7 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 
 /**
- *
- *  User handler.
+ * User handler.
  * Only login user can access.
  *
  * @author <a href="https://echocow.cn">EchoCow</a>
@@ -25,8 +24,47 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
   }
 
   /**
-   * Get current user routes about front.
-   * To set user's dynamic routing
+   * @api {GET} /me/routes user routes
+   * @apiVersion 1.0.0
+   * @apiName UserRoutes
+   * @apiDescription Get current user routes about front. To set user's dynamic routing.
+   * @apiGroup User
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/me/routes'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {Boolean}   [name ]      route name, always true.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "index": true,
+   *      }
+   */
+  /**
+   * @api {GET} /me/menu user menu
+   * @apiVersion 1.0.0
+   * @apiName UserMenu
+   * @apiDescription Get current user menu about front. To set user's nav menu.
+   * @apiGroup User
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/me/menu'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {JsonArray}  menus      user menus.
+   * @apiSuccessExample {json} Success-Response:
+   *      HTTP/1.1 200 OK
+   *      {
+   *        "menus": [
+   *          "name": "menu.system",
+   *          "children": [
+   *            {
+   *              "text": "menu.dashboard",
+   *              "icon": "mdi-view-dashboard",
+   *              "remark": "menu.system"
+   *            }
+   *          ]
+   *        ]
+   *      }
    */
   private fun routes(context: RoutingContext, address: String) {
     val roles = context.user().principal().getJsonArray("authorities")
