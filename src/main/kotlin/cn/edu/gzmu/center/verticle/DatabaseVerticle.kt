@@ -1,6 +1,7 @@
 package cn.edu.gzmu.center.verticle
 
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
+import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_MENU
 import cn.edu.gzmu.center.me.MeRepository
 import cn.edu.gzmu.center.me.MeRepositoryImpl
 import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
@@ -14,7 +15,6 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlConnection
-import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -47,16 +47,13 @@ class DatabaseVerticle : CoroutineVerticle() {
     }
   }
 
-  private suspend fun meHandles() {
+  private fun meHandles() {
     val eventBus = vertx.eventBus()
     val oauthRepository: OauthRepository = OauthRepositoryImpl(connection)
-    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_RESOURCE) {
-      launch { oauthRepository.roleResource(it) }
-    }
+    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
     val meRepository: MeRepository = MeRepositoryImpl(connection)
-    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_ROUTES) {
-      launch { meRepository.roleRoutes(it) }
-    }
+    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_ROUTES, meRepository::roleRoutes)
+    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_MENU, meRepository::roleMenu)
   }
 
   private fun databaseConfig(): PgConnectOptions =

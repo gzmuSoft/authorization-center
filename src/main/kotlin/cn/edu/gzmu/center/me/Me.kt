@@ -9,5 +9,6 @@ package cn.edu.gzmu.center.me
 internal class Me {
   companion object {
     const val ADDRESS_ROLE_ROUTES = "address_role_routes"
+    const val ADDRESS_ROLE_MENU = "address_role_menu"
   }
 }

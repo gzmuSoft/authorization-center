@@ -21,7 +21,7 @@ interface OauthRepository {
    * Get current user can access resource.
    * Roles come from [message] body.
    */
-  suspend fun roleResource(message: Message<JsonArray>)
+  fun roleResource(message: Message<JsonArray>)
 }
 
 class OauthRepositoryImpl(private val connection: SqlConnection) : OauthRepository {
@@ -33,13 +33,13 @@ class OauthRepositoryImpl(private val connection: SqlConnection) : OauthReposito
                LEFT JOIN
            auth_center_role_res acrr on acr.id = acrr.res_id
                LEFT JOIN sys_role sr on sr.id = acrr.role_id
-      WHERE acr.type = 1
+      WHERE acr.name IS NULL
         AND ( sr.name = any ($1) OR sr.name = 'ROLE_PUBLIC')
         ORDER BY acr.sort
     """.trimIndent()
   }
 
-  override suspend fun roleResource(message: Message<JsonArray>) {
+  override fun roleResource(message: Message<JsonArray>) {
     connection.preparedQuery(ROLE_RESOURCE, Tuple.of(message.body().toTypeArray<String>())) {
       if (it.failed()) {
         message.fail(500, it.cause().message)
