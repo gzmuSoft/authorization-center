@@ -22,6 +22,7 @@ internal class Oauth {
     const val SERVER = "server"
     const val SECURITY = "security"
     const val ADDRESS_ROLE_RESOURCE = "address_role_resource"
+    const val ADDRESS_ME = "address_me"
 
     // request param
     const val CODE = "code"

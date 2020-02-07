@@ -4,6 +4,7 @@ import cn.edu.gzmu.center.model.DatabaseException
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
 import cn.edu.gzmu.center.model.extension.Address.Companion.RESULT
+import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ME
 import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
 import cn.edu.gzmu.center.oauth.Oauth.Companion.CLIENT_ID
 import cn.edu.gzmu.center.oauth.Oauth.Companion.CODE
@@ -15,6 +16,7 @@ import cn.edu.gzmu.center.oauth.Oauth.Companion.SECURITY
 import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
 import cn.edu.gzmu.center.util.AntPathMatcher
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.oauth2.OAuth2Auth
@@ -47,6 +49,7 @@ class OauthHandler(
     // The following routes must be authorized.
     router.route().handler(::authenticate)
     // These api can access for all users.
+    router.get("/oauth/me").handler(::me)
     router.post("/oauth/check_token").handler(::checkToken)
     router.post("/oauth/refresh_token").handler(::refreshToken)
     // Add RBAC
@@ -158,6 +161,19 @@ class OauthHandler(
       }
       log.debug("Current user can access resource.")
       context.next()
+    }
+  }
+
+  /**
+   * Current user info.
+   */
+  private fun me(context: RoutingContext) {
+    val username = context.user().principal().getString("sub")
+    eventBus.request<JsonObject>(ADDRESS_ME, username) {
+      if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
+      context.response()
+        .setStatusCode(HttpResponseStatus.OK.code())
+        .end(it.result().body().toString())
     }
   }
 

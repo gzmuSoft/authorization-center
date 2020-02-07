@@ -43,7 +43,7 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
                LEFT JOIN
            auth_center_role_res acrr on acr.id = acrr.res_id
                LEFT JOIN sys_role sr on sr.id = acrr.role_id
-      WHERE acr.name IS NOT NULL
+      WHERE acr.name IS NOT NULL AND acr.is_enable = true
         AND ( sr.name = any ($1) OR sr.name = 'ROLE_PUBLIC')
     """.trimIndent()
     val ROLE_MENU = """
@@ -53,7 +53,7 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
            auth_center_role_res acrr on acr.id = acrr.res_id
                LEFT JOIN sys_role sr on sr.id = acrr.role_id
       WHERE acr.name IS NOT NULL AND acr.url IS NOT NULL
-         AND acr.method IS NOT NULL
+         AND acr.method IS NOT NULL AND acr.is_enable = true
          AND ( sr.name = any ($1) OR sr.name = 'ROLE_PUBLIC')
     """.trimIndent()
   }

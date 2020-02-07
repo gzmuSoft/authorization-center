@@ -4,6 +4,7 @@ import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_MENU
 import cn.edu.gzmu.center.me.MeRepository
 import cn.edu.gzmu.center.me.MeRepositoryImpl
+import cn.edu.gzmu.center.oauth.Oauth
 import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
 import cn.edu.gzmu.center.oauth.OauthRepository
 import cn.edu.gzmu.center.oauth.OauthRepositoryImpl
@@ -51,6 +52,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     val eventBus = vertx.eventBus()
     val oauthRepository: OauthRepository = OauthRepositoryImpl(connection)
     eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
+    eventBus.localConsumer<String>(Oauth.ADDRESS_ME, oauthRepository::me)
     val meRepository: MeRepository = MeRepositoryImpl(connection)
     eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_ROUTES, meRepository::roleRoutes)
     eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_MENU, meRepository::roleMenu)
