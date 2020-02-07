@@ -16,7 +16,9 @@ object Config {
     "database" to "gzmu",
     "user" to "postgres",
     "password" to "",
-    "maxSize" to 20
+    "maxSize" to 20,
+    // Will use test schema.
+    "schema" to "test"
   )
   val web: JsonObject = jsonObjectOf(
     "server" to jsonObjectOf("port" to 9000),

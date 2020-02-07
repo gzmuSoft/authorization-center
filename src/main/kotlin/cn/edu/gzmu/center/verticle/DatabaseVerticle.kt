@@ -64,7 +64,7 @@ class DatabaseVerticle : CoroutineVerticle() {
         "user" to config.getString("user", "postgres"),
         "password" to config.getString("password", "postgres")
       )
-    )
+    ).addProperty("search_path", config.getString("schema", "public"))
 
   private fun poolConfig(): PoolOptions =
     PoolOptions(
