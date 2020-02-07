@@ -152,7 +152,11 @@ class OauthHandler(
             && (res.getString("role") == "ROLE_PUBLIC" // If this resource is public, everyone can access.
             || method.name() == res.getString("method")) // If this resource need authentication, the method must match.
         }
-      if (Objects.isNull(match)) context.fail(ForbiddenException())
+      if (Objects.isNull(match)) {
+        context.fail(ForbiddenException())
+        log.debug("Forbidden!")
+      }
+      log.debug("Current user can access resource.")
       context.next()
     }
   }

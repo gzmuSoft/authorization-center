@@ -38,6 +38,10 @@ class DatabaseVerticle : CoroutineVerticle() {
       connection = client.getConnectionAwait()
       meHandles()
       log.info("Success start database verticle......")
+      vertx.exceptionHandler {
+        log.error("Get a exception")
+        throw it
+      }
     } catch (e: Exception) {
       log.error("Failed start database verticle!", e.cause)
     }

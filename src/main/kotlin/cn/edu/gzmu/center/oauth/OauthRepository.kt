@@ -7,6 +7,8 @@ import io.vertx.core.json.JsonArray
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * .
@@ -23,7 +25,7 @@ interface OauthRepository {
 }
 
 class OauthRepositoryImpl(private val connection: SqlConnection) : OauthRepository {
-
+  private val log: Logger = LoggerFactory.getLogger(OauthRepositoryImpl::class.java.name)
   companion object {
     val ROLE_RESOURCE = """
       SELECT acr.url, acr.method, sr.name
@@ -50,6 +52,7 @@ class OauthRepositoryImpl(private val connection: SqlConnection) : OauthReposito
           "role" to res.getString("name")
         )
       }
+      log.debug("Success get role resource: {}", result)
       message.reply(jsonObjectOf(RESULT to result))
     }
   }

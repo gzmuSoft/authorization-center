@@ -57,6 +57,10 @@ class WebVerticle : CoroutineVerticle() {
           log.error("Server failed......", it.cause())
         }
       }
+    vertx.exceptionHandler {
+      log.error("Get a exception")
+      throw it
+    }
   }
 
   /**
