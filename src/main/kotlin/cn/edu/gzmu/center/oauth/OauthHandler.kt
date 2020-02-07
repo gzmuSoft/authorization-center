@@ -147,9 +147,10 @@ class OauthHandler(
       val method = context.request().method()
       val match = resources.getJsonArray(RESULT).map { res -> res as JsonObject }
         .find { res ->
-          res.getString("role") == "ROLE_PUBLIC" ||
-            (matcher.match(res.getString("url") ?: "", uri)
-              && method.name() == res.getString("method"))
+          // url match.
+          matcher.match(res.getString("url") ?: "", uri)
+            && (res.getString("role") == "ROLE_PUBLIC" // If this resource is public, everyone can access.
+            || method.name() == res.getString("method")) // If this resource need authentication, the method must match.
         }
       if (Objects.isNull(match)) context.fail(ForbiddenException())
       context.next()

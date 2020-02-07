@@ -4,10 +4,8 @@ import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.verticle.DatabaseVerticle
 import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
-import io.vertx.config.ConfigRetriever
-import io.vertx.config.ConfigRetrieverOptions
-import io.vertx.config.ConfigStoreOptions
 import io.vertx.core.CompositeFuture
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.MultiMap
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -16,7 +14,6 @@ import io.vertx.ext.web.client.WebClientOptions
 import io.vertx.ext.web.client.WebClientSession
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.config.getConfigAwait
 import io.vertx.kotlin.ext.web.client.sendFormAwait
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -36,14 +33,14 @@ open class OauthHelper(private var username: String = "admin", private var passw
 
   constructor() : this("admin", "1997")
 
-  protected lateinit var config: JsonObject
+  protected val webConfig: JsonObject by lazy { Config.web }
+  protected val databaseConfig: JsonObject by lazy { Config.database }
   protected lateinit var token: String
   protected lateinit var client: WebClientSession
 
   init {
     val launch = GlobalScope.launch {
       val vertx = Vertx.vertx()
-      config(vertx)
       oauthToken(vertx)
     }
     runBlocking {
@@ -52,28 +49,14 @@ open class OauthHelper(private var username: String = "admin", private var passw
     }
   }
 
-  /**
-   * Get config.
-   */
-  private suspend fun config(vertx: Vertx) {
-    val store =
-      ConfigStoreOptions()
-        .setType("file")
-        .setFormat("yaml")
-        .setConfig(JsonObject().put("path", "application.yml"))
-    val retrieverOptions = ConfigRetrieverOptions()
-      .setScanPeriod(2000)
-      .addStore(store)
-    config = ConfigRetriever.create(vertx, retrieverOptions).getConfigAwait()
-  }
 
   /**
    * Get token by password method.
    * Client must support password grant type.
    */
   private suspend fun oauthToken(vertx: Vertx) {
-    val clientId = config.oauth("client-id")
-    val clientSecret = config.oauth("client-secret")
+    val clientId = webConfig.oauth("client-id")
+    val clientSecret = webConfig.oauth("client-secret")
     val secret = "Basic " + String(Base64.getEncoder().encode("$clientId:$clientSecret".toByteArray()))
     val oauthServer = WebClientSession.create(WebClient.create(vertx))
     oauthServer.addHeader(HttpHeaderNames.AUTHORIZATION.toString(), secret)
@@ -82,9 +65,9 @@ open class OauthHelper(private var username: String = "admin", private var passw
     form["username"] = username
     form["password"] = password
     form["grant_type"] = "password"
-    form["scope"] = config.oauth("scope")
+    form["scope"] = webConfig.oauth("scope")
     val response =
-      oauthServer.postAbs(config.oauth("server") + config.oauth("token"))
+      oauthServer.postAbs(webConfig.oauth("server") + webConfig.oauth("token"))
         .sendFormAwait(form)
     val result = response.bodyAsJsonObject()
     token = result.getString("access_token")
@@ -97,8 +80,8 @@ open class OauthHelper(private var username: String = "admin", private var passw
 
   @BeforeEach
   fun deploy(vertx: Vertx, testContext: VertxTestContext) {
-    val web = vertx.deployVerticle(WebVerticle())
-    val database = vertx.deployVerticle(DatabaseVerticle())
+    val web = vertx.deployVerticle(WebVerticle(), DeploymentOptions().setConfig(webConfig))
+    val database = vertx.deployVerticle(DatabaseVerticle(), DeploymentOptions().setConfig(databaseConfig))
     CompositeFuture.all(web, database).handler = testContext.succeeding {
       testContext.completeNow()
     }

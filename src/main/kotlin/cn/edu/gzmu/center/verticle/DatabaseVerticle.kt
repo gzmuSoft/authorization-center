@@ -1,6 +1,5 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.config.ApplicationConfig
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
 import cn.edu.gzmu.center.me.MeRepository
 import cn.edu.gzmu.center.me.MeRepositoryImpl
@@ -8,7 +7,6 @@ import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
 import cn.edu.gzmu.center.oauth.OauthRepository
 import cn.edu.gzmu.center.oauth.OauthRepositoryImpl
 import io.vertx.core.json.JsonArray
-import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.sqlclient.getConnectionAwait
@@ -32,14 +30,11 @@ class DatabaseVerticle : CoroutineVerticle() {
   private lateinit var connection: SqlConnection
 
   /**
-   * Will get config from [ApplicationConfig] and start database connection.
+   * Will get config from application.conf and start database connection.
    */
   override suspend fun start() {
-    val config = ApplicationConfig(vertx)
-    val connectOptions = config.databaseConfig()
-    val poolOptions = config.poolConfig()
-    val client = PgPool.pool(vertx, connectOptions, poolOptions)
     try {
+      val client = PgPool.pool(vertx, databaseConfig(), poolConfig())
       connection = client.getConnectionAwait()
       meHandles()
       log.info("Success start database verticle......")
@@ -60,7 +55,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     }
   }
 
-  private fun databaseConfig(config: JsonObject): PgConnectOptions =
+  private fun databaseConfig(): PgConnectOptions =
     PgConnectOptions(
       jsonObjectOf(
         "port" to config.getInteger("port", 5432),
@@ -71,7 +66,7 @@ class DatabaseVerticle : CoroutineVerticle() {
       )
     )
 
-  private fun poolConfig(config: JsonObject): PoolOptions =
+  private fun poolConfig(): PoolOptions =
     PoolOptions(
       jsonObjectOf(
         "maxSize" to config.getInteger("maxSize", 5),

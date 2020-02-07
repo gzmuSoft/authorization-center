@@ -10,5 +10,5 @@ import io.vertx.core.Vertx
  * @date 2020/2/1 下午4:25
  */
 fun main() {
-  Vertx.vertx().deployVerticle(BootVerticle::class.java.name)
+  Vertx.vertx().deployVerticle(BootVerticle())
 }

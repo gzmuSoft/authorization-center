@@ -1,11 +1,13 @@
 package cn.edu.gzmu.center.handler
 
-import cn.edu.gzmu.center.config.ApplicationConfig
+import cn.edu.gzmu.center.Config
 import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.MultiMap
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.client.WebClientOptions
 import io.vertx.ext.web.client.WebClientSession
@@ -40,21 +42,20 @@ import java.util.regex.Pattern
 class OauthHandlerTest {
 
   private lateinit var client: WebClient
-  private lateinit var application: ApplicationConfig
   private var username: String = "admin"
   private var password: String = "1997"
+  private val config: JsonObject by lazy { Config.web }
 
   @BeforeEach
   fun deployVerticle(vertx: Vertx, testContext: VertxTestContext) {
-    vertx.deployVerticle(WebVerticle(), testContext.succeeding<String> {
+    val deploymentOptions = DeploymentOptions()
+    deploymentOptions.config = config
+    vertx.deployVerticle(WebVerticle(), deploymentOptions, testContext.succeeding<String> {
       // Setting default host and default port.
-      // These config come from application.yml,
-      // maybe change to git config.
       val options = WebClientOptions()
       options.defaultHost = "localhost"
       options.defaultPort = 9000
       client = WebClient.create(vertx, options)
-      application = ApplicationConfig(vertx)
       testContext.completeNow()
     })
   }
@@ -133,7 +134,6 @@ class OauthHandlerTest {
    * @param vertx need vertx to create webclient
    */
   private suspend fun oauthCode(vertx: Vertx): String {
-    val config = application.config()
     val clientId = config.oauth("client-id")
     val clientSecret = config.oauth("client-secret")
     val secret = "Basic " + Base64.getEncoder().encode("$clientId:$clientSecret".toByteArray())
