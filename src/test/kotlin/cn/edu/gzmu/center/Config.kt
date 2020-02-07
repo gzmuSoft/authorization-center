@@ -12,10 +12,10 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 object Config {
   val database: JsonObject = jsonObjectOf(
     "port" to 5432,
-    "host" to "118.24.1.170",
+    "host" to "127.0.0.1",
     "database" to "gzmu",
     "user" to "postgres",
-    "password" to "",
+    "password" to "123456",
     "maxSize" to 20,
     // Will use test schema.
     "schema" to "test"
