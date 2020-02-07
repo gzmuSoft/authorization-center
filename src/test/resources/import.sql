@@ -12,7 +12,7 @@
  Target Server Version : 120001
  File Encoding         : 65001
 
- Date: 07/02/2020 14:18:41
+ Date: 07/02/2020 18:28:26
 */
 
 
@@ -34,14 +34,11 @@ CREATE TABLE "test"."auth_center_res"
     "modify_user" varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
     "modify_time" timestamp(0)                                DEFAULT CURRENT_TIMESTAMP,
     "remark"      varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
-    "is_enable"   bool NOT NULL                               DEFAULT true,
-    "type"        int4 NOT NULL                               DEFAULT 1
+    "is_enable"   bool NOT NULL                               DEFAULT true
 )
 ;
 ALTER TABLE "test"."auth_center_res"
     OWNER TO "postgres";
-COMMENT ON COLUMN "test"."auth_center_res"."type" IS '0 菜单
-1 资源';
 
 -- ----------------------------
 -- Records of auth_center_res
@@ -49,10 +46,12 @@ COMMENT ON COLUMN "test"."auth_center_res"."type" IS '0 菜单
 BEGIN;
 INSERT INTO "test"."auth_center_res"
 VALUES (1, NULL, NULL, '/me/routes', '获取当前登录用户的路由信息', 'GET', 1, NULL, '2020-02-06 15:08:14', NULL,
-        '2020-02-06 15:08:14', NULL, 't', 1);
+        '2020-02-06 15:08:14', NULL, 't');
 INSERT INTO "test"."auth_center_res"
-VALUES (2, 'index', NULL, NULL, '菜单-仪表盘', 'GET', 1, NULL, '2020-02-06 15:56:37', NULL, '2020-02-06 15:56:37', NULL, 't',
-        0);
+VALUES (3, NULL, NULL, '/me/menu', NULL, 'GET', 1, NULL, '2020-02-07 09:58:05', NULL, '2020-02-07 09:58:05', NULL, 't');
+INSERT INTO "test"."auth_center_res"
+VALUES (2, 'index', NULL, 'menu.dashboard', '路由-仪表盘', 'mdi-view-dashboard', 1, NULL, '2020-02-06 15:56:37', NULL,
+        '2020-02-06 15:56:37', 'menu.system', 't');
 COMMIT;
 
 -- ----------------------------
@@ -86,6 +85,8 @@ INSERT INTO "test"."auth_center_role_res"
 VALUES (1, NULL, NULL, 1, 1, NULL, NULL, '2020-02-06 15:27:46', NULL, '2020-02-06 15:27:46', NULL, 't');
 INSERT INTO "test"."auth_center_role_res"
 VALUES (2, NULL, NULL, 1, 2, NULL, NULL, '2020-02-06 15:57:37', NULL, '2020-02-06 15:57:37', NULL, 't');
+INSERT INTO "test"."auth_center_role_res"
+VALUES (3, NULL, NULL, 1, 3, NULL, NULL, '2020-02-07 09:58:21', NULL, '2020-02-07 09:58:21', NULL, 't');
 COMMIT;
 
 -- ----------------------------
@@ -1282,14 +1283,14 @@ ALTER TABLE "test"."auth_center_res"
 -- Indexes structure for table auth_center_role_res
 -- ----------------------------
 CREATE INDEX "sys_role_res_sys_res_id_fk_copy1" ON "test"."auth_center_role_res" USING btree (
-                                                                                              "res_id"
-                                                                                              "pg_catalog"."int8_ops"
-                                                                                              ASC NULLS LAST
+                                                                                                "res_id"
+                                                                                                "pg_catalog"."int8_ops"
+                                                                                                ASC NULLS LAST
     );
 CREATE INDEX "sys_role_res_sys_role_id_fk_copy1" ON "test"."auth_center_role_res" USING btree (
-                                                                                               "role_id"
-                                                                                               "pg_catalog"."int8_ops"
-                                                                                               ASC NULLS LAST
+                                                                                                 "role_id"
+                                                                                                 "pg_catalog"."int8_ops"
+                                                                                                 ASC NULLS LAST
     );
 
 -- ----------------------------
@@ -1308,7 +1309,7 @@ ALTER TABLE "test"."client_details"
 -- Indexes structure for table semester
 -- ----------------------------
 CREATE INDEX "fk_school" ON "test"."semester" USING btree (
-                                                           "school_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+                                                             "school_id" "pg_catalog"."int8_ops" ASC NULLS LAST
     );
 
 -- ----------------------------
@@ -1345,12 +1346,12 @@ ALTER TABLE "test"."sys_role"
 -- Indexes structure for table sys_role_res
 -- ----------------------------
 CREATE INDEX "sys_role_res_sys_res_id_fk" ON "test"."sys_role_res" USING btree (
-                                                                                "res_id" "pg_catalog"."int8_ops" ASC
-                                                                                NULLS LAST
+                                                                                  "res_id" "pg_catalog"."int8_ops" ASC
+                                                                                  NULLS LAST
     );
 CREATE INDEX "sys_role_res_sys_role_id_fk" ON "test"."sys_role_res" USING btree (
-                                                                                 "role_id" "pg_catalog"."int8_ops" ASC
-                                                                                 NULLS LAST
+                                                                                   "role_id" "pg_catalog"."int8_ops" ASC
+                                                                                   NULLS LAST
     );
 
 -- ----------------------------
@@ -1379,10 +1380,10 @@ ALTER TABLE "test"."sys_user"
 -- Indexes structure for table sys_user_role
 -- ----------------------------
 CREATE INDEX "fk_ur_role" ON "test"."sys_user_role" USING btree (
-                                                                 "role_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+                                                                   "role_id" "pg_catalog"."int8_ops" ASC NULLS LAST
     );
 CREATE INDEX "fk_ur_user" ON "test"."sys_user_role" USING btree (
-                                                                 "user_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+                                                                   "user_id" "pg_catalog"."int8_ops" ASC NULLS LAST
     );
 
 -- ----------------------------

@@ -1,6 +1,7 @@
 package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.Config
+import cn.edu.gzmu.center.OauthHelper
 import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
@@ -21,8 +22,7 @@ import io.vertx.kotlin.ext.web.client.sendFormAwait
 import io.vertx.kotlin.ext.web.client.sendJsonObjectAwait
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -39,7 +39,7 @@ import java.util.regex.Pattern
  * @date 2020/1/30 上午11:46
  */
 @ExtendWith(VertxExtension::class)
-class OauthHandlerTest {
+internal class OauthHandlerTest {
 
   private lateinit var client: WebClient
   private var username: String = "admin"
@@ -119,7 +119,7 @@ class OauthHandlerTest {
    * @param key result key
    * @return response
    */
-  protected suspend fun oauthToken(vertx: Vertx, key: String = "access_token"): String {
+  private suspend fun oauthToken(vertx: Vertx, key: String = "access_token"): String {
     val code = oauthCode(vertx)
     val tokenResponse =
       client.post("/oauth/token").sendJsonObjectAwait(jsonObjectOf("code" to code))
@@ -192,4 +192,46 @@ class OauthHandlerTest {
     return code
   }
 
+}
+
+internal class AuthHandlerTest : OauthHelper() {
+
+  @Test
+  fun `Check token when passed`(testContext: VertxTestContext) {
+    client.post("/oauth/check_token")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        else {
+          val result = it.result()
+          testContext.verify {
+            assertEquals(200, result.statusCode())
+            val token = result.bodyAsJsonObject()
+            assertTrue(token.containsKey("sub"))
+            assertTrue(token.containsKey("jti"))
+            testContext.completeNow()
+          }
+        }
+      }
+  }
+
+  @Test
+  fun `Get user info when passed`(testContext: VertxTestContext) {
+    client.get("/oauth/me")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        else {
+          val response = it.result()
+          testContext.verify {
+            assertEquals(200, response.statusCode())
+            val body = response.bodyAsJsonObject()
+            assertTrue(body.containsKey("name"))
+            assertTrue(body.containsKey("email"))
+            assertTrue(body.containsKey("avatar"))
+            assertTrue(body.containsKey("image"))
+            assertTrue(body.containsKey("phone"))
+            testContext.completeNow()
+          }
+        }
+      }
+  }
 }
