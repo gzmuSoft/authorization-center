@@ -83,7 +83,6 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
    *      curl --location --request GET 'http://127.0.0.1:8889/me/info'
    *        --header 'Authorization: Bearer token'
    * @apiUse Bearer
-   * @apiSuccess {Boolean}   [name ]      route name, always true.
    * @apiSuccessExample {json} Student:
    *      HTTP/1.1 200 OK
    *      {

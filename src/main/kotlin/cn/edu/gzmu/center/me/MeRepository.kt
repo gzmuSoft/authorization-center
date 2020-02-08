@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.me
 
 import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.entity.Teacher
+import cn.edu.gzmu.center.model.extension.messageException
 import cn.edu.gzmu.center.model.extension.toJsonObject
 import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.eventbus.Message
@@ -78,10 +79,7 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
 
   override fun roleRoutes(message: Message<JsonArray>) {
     connection.preparedQuery(ROLE_ROUTES, Tuple.of(message.body().toTypeArray<String>())) {
-      if (it.failed()) {
-        message.fail(500, it.cause().message)
-        throw it.cause()
-      }
+      messageException(message, it)
       val result = jsonObjectOf()
       it.result().map { res -> res.getString("name") }.forEach { res -> result.put(res, true) }
       log.debug("Success get role routes: {}", result)
@@ -91,10 +89,7 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
 
   override fun roleMenu(message: Message<JsonArray>) {
     connection.preparedQuery(ROLE_MENU, Tuple.of(message.body().toTypeArray<String>())) {
-      if (it.failed()) {
-        message.fail(500, it.cause().message)
-        throw it.cause()
-      }
+      messageException(message, it)
       val result = jsonArrayOf()
       it.result().map { menu ->
         jsonObjectOf(

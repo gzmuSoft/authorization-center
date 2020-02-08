@@ -4,6 +4,7 @@ import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.verticle.DatabaseVerticle
 import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.CompositeFuture
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.MultiMap
@@ -37,6 +38,7 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
   protected val databaseConfig: JsonObject by lazy { Config.database }
   protected lateinit var token: String
   protected lateinit var client: WebClientSession
+  protected val ok: Int by lazy { HttpResponseStatus.OK.code() }
 
   init {
     val launch = GlobalScope.launch {

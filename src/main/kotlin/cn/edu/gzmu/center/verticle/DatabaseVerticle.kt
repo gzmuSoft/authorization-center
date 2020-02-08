@@ -1,5 +1,8 @@
 package cn.edu.gzmu.center.verticle
 
+import cn.edu.gzmu.center.base.Base
+import cn.edu.gzmu.center.base.BaseRepository
+import cn.edu.gzmu.center.base.BaseRepositoryImpl
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ME_INFO
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_MENU
@@ -9,6 +12,7 @@ import cn.edu.gzmu.center.oauth.Oauth
 import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
 import cn.edu.gzmu.center.oauth.OauthRepository
 import cn.edu.gzmu.center.oauth.OauthRepositoryImpl
+import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
@@ -32,6 +36,7 @@ class DatabaseVerticle : CoroutineVerticle() {
 
   private val log: Logger = LoggerFactory.getLogger(DatabaseVerticle::class.java.name)
   private lateinit var connection: SqlConnection
+  private lateinit var eventBus: EventBus
 
   /**
    * Will get config from application.conf and start database connection.
@@ -39,8 +44,10 @@ class DatabaseVerticle : CoroutineVerticle() {
   override suspend fun start() {
     try {
       val client = PgPool.pool(vertx, databaseConfig(), poolConfig())
+      eventBus = vertx.eventBus()
       connection = client.getConnectionAwait()
-      meHandles()
+      meRepository()
+      baseRepository()
       log.info("Success start database verticle......")
       vertx.exceptionHandler {
         log.error("Get a exception")
@@ -50,13 +57,17 @@ class DatabaseVerticle : CoroutineVerticle() {
       log.error("Failed start database verticle!", e.cause)
     }
   }
+  private fun baseRepository() {
+    val baseRepository: BaseRepository = BaseRepositoryImpl(connection)
+    eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_TYPE, baseRepository::dataType)
+    eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_NAME, baseRepository::dataInfo)
+  }
 
-  private fun meHandles() {
-    val eventBus = vertx.eventBus()
+  private fun meRepository() {
     val oauthRepository: OauthRepository = OauthRepositoryImpl(connection)
+    val meRepository: MeRepository = MeRepositoryImpl(connection)
     eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
     eventBus.localConsumer<String>(Oauth.ADDRESS_ME, oauthRepository::me)
-    val meRepository: MeRepository = MeRepositoryImpl(connection)
     eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_ROUTES, meRepository::roleRoutes)
     eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_MENU, meRepository::roleMenu)
     eventBus.localConsumer<JsonObject>(ADDRESS_ME_INFO) {
