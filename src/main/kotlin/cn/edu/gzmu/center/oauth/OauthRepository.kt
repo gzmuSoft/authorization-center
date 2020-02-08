@@ -44,9 +44,10 @@ class OauthRepositoryImpl(private val connection: SqlConnection) : OauthReposito
         ORDER BY acr.sort
     """.trimIndent()
     val ME = """
-      SELECT u.name, u.email, u.avatar, u.image, u.phone
+      SELECT u.id, u.name, u.email, u.avatar, u.image, u.phone
       FROM sys_user u
       WHERE u.name = $1
+      AND u.is_enable = true
     """.trimIndent()
   }
 
@@ -76,6 +77,7 @@ class OauthRepositoryImpl(private val connection: SqlConnection) : OauthReposito
       }
       val user = it.result().map { row ->
         jsonObjectOf(
+          "id" to row.getLong("id"),
           "name" to row.getString("name"),
           "email" to row.getString("email"),
           "avatar" to row.getString("avatar"),
@@ -87,5 +89,4 @@ class OauthRepositoryImpl(private val connection: SqlConnection) : OauthReposito
       message.reply(user)
     }
   }
-
 }

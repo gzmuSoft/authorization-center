@@ -10,5 +10,6 @@ class Base {
   companion object {
     const val ADDRESS_SYS_DATA_TYPE = "address_sys_data_type"
     const val ADDRESS_SYS_DATA_NAME = "address_sys_data_name"
+    const val ADDRESS_SYS_USER_EXIST = "address_sys_user_exist"
   }
 }

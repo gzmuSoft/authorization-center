@@ -3,7 +3,10 @@ package cn.edu.gzmu.center.me
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ME_INFO
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
 import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_MENU
+import cn.edu.gzmu.center.model.extension.Address
+import cn.edu.gzmu.center.model.extension.handleNoResult
 import cn.edu.gzmu.center.model.extension.handleResult
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
@@ -23,6 +26,20 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
     router.get("/me/routes").handler { this.routes(it, ADDRESS_ROLE_ROUTES) }
     router.get("/me/menu").handler { this.routes(it, ADDRESS_ROLE_MENU) }
     router.get("/me/info").handler(::info)
+    router.patch("/me/user")
+      .handler {
+        Address.parameterHandler.requireJson(
+          it,
+          "name", "email", "phone", "password", "rePassword"
+        )
+      }
+      .handler {
+        Address.parameterHandler.equalsJson(
+          it,
+          "两次密码不一致", Pair("password", "rePassword")
+        )
+      }
+      .handler(::user)
   }
 
   /**
@@ -151,9 +168,44 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
   private fun info(context: RoutingContext) {
     val student = context.user().principal().getBoolean("is_student")
     val teacher = context.user().principal().getBoolean("is_teacher")
-    val username = context.user().principal().getString("user_name")
+    val id = context.get<Long>("id")
     eventBus.request<JsonObject>(
-      ADDRESS_ME_INFO, jsonObjectOf("student" to student, "teacher" to teacher, "username" to username)
+      ADDRESS_ME_INFO, jsonObjectOf("student" to student, "teacher" to teacher, "id" to id)
     ) { handleResult(context, it) }
+  }
+
+  /**
+   * @api {PATCH} /me/user update user
+   * @apiVersion 1.0.0
+   * @apiName UserUpdate
+   * @apiDescription Update user info.
+   * @apiGroup User
+   * @apiExample Example usage:
+   *  curl --location --request PATCH 'http://127.0.0.1:8889/me/user' \
+   *      --header 'Content-Type: application/json' \
+   *      --header 'Authorization: Bearer ......' \
+   *      --data-raw '{
+   *          "name": "...",
+   *          "email": "...",
+   *          "phone": "...",
+   *         "password": "",
+   *         "rePassword": ""
+   *      }'
+   * @apiUse Bearer
+   * @apiParam {String} name         username.
+   * @apiParam {String} email        email.
+   * @apiParam {String} phone        phone.
+   * @apiParam {String} password     password. If do not update, set ""
+   * @apiParam {String} rePassword   rePassword. If do not update, set ""
+   * @apiSuccessExample {json} Success-Response:
+   *          HTTP/1.1 204 No Content
+   */
+  private fun user(context: RoutingContext) {
+    val user = context.bodyAsJson
+    user.put("id", context.get<Long>("id"))
+    user.put("username", context.get<String>("username"))
+    eventBus.request<Unit>(Me.ADDRESS_ME_USER, user) {
+      handleNoResult(context, HttpResponseStatus.NO_CONTENT, it)
+    }
   }
 }

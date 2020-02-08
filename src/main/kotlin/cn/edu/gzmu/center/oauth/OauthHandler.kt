@@ -16,7 +16,6 @@ import cn.edu.gzmu.center.oauth.Oauth.Companion.SECURITY
 import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
 import cn.edu.gzmu.center.util.AntPathMatcher
 import io.netty.handler.codec.http.HttpHeaderNames
-import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.oauth2.OAuth2Auth
@@ -58,6 +57,7 @@ class OauthHandler(
     router.get("/oauth/me").handler(::me)
     // Add RBAC
     router.route().handler(::authentication)
+    router.route().handler(::userInfo)
   }
 
   /**
@@ -66,6 +66,7 @@ class OauthHandler(
   private fun authenticate(context: RoutingContext) {
     val authorization = context.request().headers()[HttpHeaderNames.AUTHORIZATION] ?: ""
     if (!authorization.startsWith("Bearer ")) context.fail(UnauthorizedException())
+    context.put("bearer", authorization)
     oAuth2Auth.authenticate(
       jsonObjectOf(
         "token_type" to "Bearer",
@@ -75,6 +76,7 @@ class OauthHandler(
       if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
       log.debug("Login user is: {}", it.result().principal().getString("sub"))
       context.setUser(it.result())
+      context.put("username", it.result().principal().getString("sub"))
       context.next()
     }
   }
@@ -290,32 +292,6 @@ class OauthHandler(
   }
 
   /**
-   * Verify that user have permission to access the resource.
-   */
-  private fun authentication(context: RoutingContext) {
-    val roles = context.user().principal().getJsonArray("authorities")
-    eventBus.request<JsonObject>(ADDRESS_ROLE_RESOURCE, roles) {
-      if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
-      val resources = it.result().body()
-      val uri = context.request().uri()
-      val method = context.request().method()
-      val match = resources.getJsonArray(RESULT).map { res -> res as JsonObject }
-        .find { res ->
-          // url match.
-          matcher.match(res.getString("url") ?: "", uri)
-            && (res.getString("role") == "ROLE_PUBLIC" // If this resource is public, everyone can access.
-            || method.name() == res.getString("method")) // If this resource need authentication, the method must match.
-        }
-      if (Objects.isNull(match)) {
-        context.fail(ForbiddenException())
-        log.debug("Forbidden!")
-      }
-      log.debug("Current user can access resource.")
-      context.next()
-    }
-  }
-
-  /**
    * @api {GET} /oauth/me oauth me
    * @apiVersion 1.0.0
    * @apiName OauthMe
@@ -341,12 +317,51 @@ class OauthHandler(
    *      }
    */
   private fun me(context: RoutingContext) {
-    val username = context.user().principal().getString("sub")
+    context.response().end(jsonObjectOf(
+      "name" to context.get<String>("name"),
+      "email" to context.get<String>("email"),
+      "avatar" to context.get<String>("avatar"),
+      "image" to context.get<String>("image"),
+      "phone" to context.get<String>("phone")
+    ).toString())
+  }
+
+  /**
+   * Verify that user have permission to access the resource.
+   */
+  private fun authentication(context: RoutingContext) {
+    val roles = context.user().principal().getJsonArray("authorities")
+    eventBus.request<JsonObject>(ADDRESS_ROLE_RESOURCE, roles) {
+      if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
+      val resources = it.result().body()
+      val uri = context.request().path()
+      val method = context.request().method()
+      val match = resources.getJsonArray(RESULT).map { res -> res as JsonObject }
+        .find { res ->
+          // url match.
+          matcher.match(res.getString("url") ?: "", uri)
+            && (res.getString("role") == "ROLE_PUBLIC" // If this resource is public, everyone can access.
+            || method.name() == res.getString("method")) // If this resource need authentication, the method must match.
+        }
+      if (Objects.isNull(match)) {
+        context.fail(ForbiddenException())
+        log.debug("Forbidden!")
+      }
+      log.debug("Current user can access resource.")
+      context.next()
+    }
+  }
+
+  /**
+   * Add user info.
+   */
+  private fun userInfo(context: RoutingContext) {
+    val username = context.get<String>("username")
     eventBus.request<JsonObject>(ADDRESS_ME, username) {
       if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
-      context.response()
-        .setStatusCode(HttpResponseStatus.OK.code())
-        .end(it.result().body().toString())
+      val body = it.result().body()
+      body.map.forEach { (key, value) -> context.put(key, value) }
+      context.next()
     }
   }
 

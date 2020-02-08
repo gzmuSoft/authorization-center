@@ -12,11 +12,16 @@ class UnauthorizedException(message: String?) :
 }
 
 class ForbiddenException(message: String?) :
-  Throwable("鉴权失败，${message ?: "您无权访问"}") {
+  Throwable("鉴权失败:${message ?: "您无权访问"}") {
   constructor() : this(null)
 }
 
 class DatabaseException(message: String?) :
-  Throwable("服务器错误，${message ?: "数据异常"}") {
+  Throwable("服务器错误:${message ?: "数据异常"}") {
+  constructor() : this(null)
+}
+
+class BadRequestException(message: String?) :
+  Throwable("非法请求:${message ?: "缺少必要参数或参数不合法"}") {
   constructor() : this(null)
 }

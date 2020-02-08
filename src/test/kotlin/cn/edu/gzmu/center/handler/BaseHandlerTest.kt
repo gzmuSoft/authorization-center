@@ -46,4 +46,62 @@ internal class BaseHandlerTest : OauthHelper() {
         }
       }
   }
+
+  @Test
+  internal fun `Get user exist with name when passed`(testContext: VertxTestContext) {
+    client.get("/base/user/exist")
+      .setQueryParam("name", "admin")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        val response = it.result()
+        testContext.verify {
+          assertEquals(ok, response.statusCode())
+          val body = response.bodyAsJsonObject()
+          assertTrue(body.getBoolean("exist"))
+          testContext.completeNow()
+        }
+      }
+  }
+  @Test
+  internal fun `Get user exist with email when passed`(testContext: VertxTestContext) {
+    client.get("/base/user/exist")
+      .setQueryParam("email", "lizhongyue246@163.com")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        val response = it.result()
+        testContext.verify {
+          assertEquals(ok, response.statusCode())
+          val body = response.bodyAsJsonObject()
+          assertTrue(body.getBoolean("exist"))
+          testContext.completeNow()
+        }
+      }
+  }
+  @Test
+  internal fun `Get user exist with phone when passed`(testContext: VertxTestContext) {
+    client.get("/base/user/exist")
+      .setQueryParam("phone", "13765308261")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        val response = it.result()
+        testContext.verify {
+          assertEquals(ok, response.statusCode())
+          val body = response.bodyAsJsonObject()
+          assertTrue(body.getBoolean("exist"))
+          testContext.completeNow()
+        }
+      }
+  }
+  @Test
+  internal fun `Get user does not exist when passed`(testContext: VertxTestContext) {
+    client.get("/base/user/exist")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        val response = it.result()
+        testContext.verify {
+          assertEquals(400, response.statusCode())
+          testContext.completeNow()
+        }
+      }
+  }
 }

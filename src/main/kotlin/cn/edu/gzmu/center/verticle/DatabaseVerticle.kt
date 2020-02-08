@@ -3,13 +3,10 @@ package cn.edu.gzmu.center.verticle
 import cn.edu.gzmu.center.base.Base
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.base.BaseRepositoryImpl
-import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ME_INFO
-import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_ROUTES
-import cn.edu.gzmu.center.me.Me.Companion.ADDRESS_ROLE_MENU
+import cn.edu.gzmu.center.me.Me
 import cn.edu.gzmu.center.me.MeRepository
 import cn.edu.gzmu.center.me.MeRepositoryImpl
 import cn.edu.gzmu.center.oauth.Oauth
-import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
 import cn.edu.gzmu.center.oauth.OauthRepository
 import cn.edu.gzmu.center.oauth.OauthRepositoryImpl
 import io.vertx.core.eventbus.EventBus
@@ -57,22 +54,23 @@ class DatabaseVerticle : CoroutineVerticle() {
       log.error("Failed start database verticle!", e.cause)
     }
   }
+
   private fun baseRepository() {
     val baseRepository: BaseRepository = BaseRepositoryImpl(connection)
     eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_TYPE, baseRepository::dataType)
     eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_NAME, baseRepository::dataInfo)
+    eventBus.localConsumer<JsonObject>(Base.ADDRESS_SYS_USER_EXIST, baseRepository::userExist)
   }
 
   private fun meRepository() {
     val oauthRepository: OauthRepository = OauthRepositoryImpl(connection)
     val meRepository: MeRepository = MeRepositoryImpl(connection)
-    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
+    eventBus.localConsumer<JsonArray>(Oauth.ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
     eventBus.localConsumer<String>(Oauth.ADDRESS_ME, oauthRepository::me)
-    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_ROUTES, meRepository::roleRoutes)
-    eventBus.localConsumer<JsonArray>(ADDRESS_ROLE_MENU, meRepository::roleMenu)
-    eventBus.localConsumer<JsonObject>(ADDRESS_ME_INFO) {
-      launch { meRepository.meInfo(it) }
-    }
+    eventBus.localConsumer<JsonArray>(Me.ADDRESS_ROLE_ROUTES, meRepository::roleRoutes)
+    eventBus.localConsumer<JsonArray>(Me.ADDRESS_ROLE_MENU, meRepository::roleMenu)
+    eventBus.localConsumer<JsonObject>(Me.ADDRESS_ME_INFO) { launch { meRepository.meInfo(it) } }
+    eventBus.localConsumer<JsonObject>(Me.ADDRESS_ME_USER, meRepository::meUser)
   }
 
   private fun databaseConfig(): PgConnectOptions =
@@ -96,5 +94,6 @@ class DatabaseVerticle : CoroutineVerticle() {
 
   override suspend fun stop() {
     connection.close()
+    log.info("Success stop database verticle......")
   }
 }

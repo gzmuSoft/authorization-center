@@ -12,7 +12,6 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import io.vertx.kotlin.core.json.get
 import io.vertx.sqlclient.Row
-import io.vertx.sqlclient.RowSet
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.lang.Exception
@@ -54,10 +53,24 @@ object KotlinJson {
 }
 
 fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
-  if (ar.failed()) context.fail(DatabaseException(ar.cause().localizedMessage))
+  if (ar.failed()) {
+    context.fail(DatabaseException(ar.cause().localizedMessage))
+    return
+  }
   context.response()
     .setStatusCode(HttpResponseStatus.OK.code())
     .end(ar.result().body().toString())
+}
+
+fun handleNoResult(context: RoutingContext, status: HttpResponseStatus = HttpResponseStatus.OK,
+                   ar: AsyncResult<Message<Unit>>) {
+  if (ar.failed()) {
+    context.fail(DatabaseException(ar.cause().localizedMessage))
+    return
+  }
+  context.response()
+    .setStatusCode(status.code())
+    .end()
 }
 
 @Throws(Exception::class)

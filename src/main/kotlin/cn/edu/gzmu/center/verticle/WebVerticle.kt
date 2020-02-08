@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.verticle
 
 import cn.edu.gzmu.center.base.BaseHandler
 import cn.edu.gzmu.center.me.MeHandler
+import cn.edu.gzmu.center.model.BadRequestException
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
 import cn.edu.gzmu.center.model.extension.oauth
@@ -48,15 +49,15 @@ class WebVerticle : CoroutineVerticle() {
     )
     MeHandler(router, eventBus)
     BaseHandler(router, eventBus)
-    router.route().last().failureHandler(::exceptionHandler)
+    router.route().failureHandler(::exceptionHandler)
     vertx
       .createHttpServer()
       .requestHandler(router)
       .listen(server.getInteger("port", 8888)) {
         if (it.succeeded()) {
-          log.info("Server start on port {}......", server.getInteger("port", 8888))
+          log.info("Success start server on port {}......", server.getInteger("port", 8888))
         } else {
-          log.error("Server failed......", it.cause())
+          log.error("Failed start server......", it.cause())
         }
       }
     vertx.exceptionHandler {
@@ -85,6 +86,8 @@ class WebVerticle : CoroutineVerticle() {
       is RuntimeException -> response.setStatusCode(500).end(message)
       is UnauthorizedException -> response.setStatusCode(401).end(message)
       is ForbiddenException -> response.setStatusCode(403).end(message)
+      is BadRequestException -> response.setStatusCode(400).end(message)
+      else -> response.setStatusCode(500).end(message)
     }
   }
 
@@ -106,4 +109,8 @@ class WebVerticle : CoroutineVerticle() {
         "scopeSeparator" to ","
       )
     )
+
+  override suspend fun stop() {
+    log.info("Success stop web verticle......")
+  }
 }

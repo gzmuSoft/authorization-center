@@ -1,5 +1,7 @@
 package cn.edu.gzmu.center.model.extension
 
+import cn.edu.gzmu.center.model.ParameterHandler
+
 /**
  * .
  *
@@ -8,8 +10,10 @@ package cn.edu.gzmu.center.model.extension
  */
 internal class Address {
   companion object {
+    val parameterHandler = ParameterHandler()
     const val CONFIG_ADDRESS = "authorization-center-config"
     const val DATABASE = "database"
     const val RESULT = "result"
+    const val LOG_ROUNDS = 12
   }
 }

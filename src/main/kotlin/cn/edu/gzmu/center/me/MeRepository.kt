@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.me
 
 import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.entity.Teacher
+import cn.edu.gzmu.center.model.extension.Address.Companion.LOG_ROUNDS
 import cn.edu.gzmu.center.model.extension.messageException
 import cn.edu.gzmu.center.model.extension.toJsonObject
 import cn.edu.gzmu.center.model.extension.toTypeArray
@@ -13,9 +14,11 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.sqlclient.preparedQueryAwait
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
+import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Exception
+import java.time.LocalDateTime
 
 /**
  * .
@@ -43,9 +46,21 @@ interface MeRepository {
    * It has two key - value
    * - student: Boolean
    * - teacher: Boolean
-   * - username: String
+   * - id: Long
    */
   suspend fun meInfo(message: Message<JsonObject>)
+
+  /**
+   * Update current user.
+   * User come from [message] body.
+   * - ir: Long user Id
+   * - username: String
+   * - name: String
+   * - email: String
+   * - phone: String
+   * - password: String
+   */
+  fun meUser(message: Message<JsonObject>)
 
 }
 
@@ -74,7 +89,6 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
     """.trimIndent()
     const val STUDENT_BY_USER = "SELECT * FROM student WHERE user_id = $1 AND is_enable = true"
     const val TEACHER_BY_USER = "SELECT * FROM teacher WHERE user_id = $1 AND is_enable = true"
-    const val USER_BY_NAME = "SELECT u.id FROM sys_user u WHERE u.name = $1 AND u.is_enable = true"
   }
 
   override fun roleRoutes(message: Message<JsonArray>) {
@@ -116,11 +130,9 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
     val body = message.body()
     val student = body.getBoolean("student")
     val teacher = body.getBoolean("teacher")
-    val username = body.getString("username")
+    val id = body.getLong("id")
     try {
-      val rows = connection.preparedQueryAwait(USER_BY_NAME, Tuple.of(username))
-      if (rows.rowCount() == 0) message.reply(JsonObject())
-      val tuple = Tuple.of(rows.first().getLong("id"))
+      val tuple = Tuple.of(id)
       val result = when {
         student -> studentInfo(tuple)
         teacher -> teacherInfo(tuple)
@@ -131,6 +143,28 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
     } catch (e: Exception) {
       message.fail(500, e.localizedMessage)
       throw e
+    }
+  }
+
+  override fun meUser(message: Message<JsonObject>) {
+    val body = message.body()
+    val password = body.getString("password") ?: ""
+    val sql = """
+      UPDATE sys_user SET name = $1, email = $2, phone = $3,
+             modify_user = $5, modify_time = $6
+          ${if (password.isBlank()) "" else ", password = $7"}
+      WHERE id = $4 AND is_enable = true
+    """.trimIndent()
+    val tuple = Tuple.of(
+      body.getString("name"), body.getString("email"),
+      body.getString("phone"), body.getLong("id"),
+      body.getString("username"), LocalDateTime.now()
+    )
+    if (!password.isBlank()) tuple.addString(BCrypt.hashpw(password, BCrypt.gensalt(LOG_ROUNDS)))
+    connection.preparedQuery(sql, tuple) {
+      messageException(message, it)
+      log.debug("Success update user info: ", body)
+      message.reply("success")
     }
   }
 

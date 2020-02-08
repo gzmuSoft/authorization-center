@@ -1,9 +1,13 @@
 package cn.edu.gzmu.center.base
 
 import cn.edu.gzmu.center.model.extension.messageException
+import io.vertx.core.Future
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
+import io.vertx.sqlclient.Row
+import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
@@ -29,6 +33,14 @@ interface BaseRepository {
    */
   fun dataInfo(message: Message<Long>)
 
+  /**
+   * User exist, these params must have one/
+   * name - optional - String
+   * email - optional - String
+   * phone - optional - String
+   */
+  fun userExist(message: Message<JsonObject>)
+
 }
 
 class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository {
@@ -37,6 +49,7 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
   companion object {
     const val DATA_TYPE =
       "SELECT d.id, d.name, d.brief FROM sys_data d WHERE d.type = $1 AND is_enable = true ORDER BY sort"
+    const val USER_COUNT = "SELECT count(id) FROM sys_user WHERE is_enable = true"
     val DATA_NAME = """
       WITH RECURSIVE cte as (
           SELECT id, name, parent_id, type
@@ -86,6 +99,23 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
         "result" to result,
         "name" to result.joinToString(" / ") { row -> row.getString("name") }
       ))
+    }
+  }
+
+  override fun userExist(message: Message<JsonObject>) {
+    val body = message.body()
+    val name = body.getString("name") ?: ""
+    val email = body.getString("email") ?: ""
+    val phone = body.getString("phone") ?: ""
+    val future: Future<RowSet<Row>> =
+      if (!name.isBlank()) connection.preparedQuery("$USER_COUNT AND name = $1", Tuple.of(name))
+      else if (!email.isBlank()) connection.preparedQuery("$USER_COUNT AND email = $1", Tuple.of(email))
+      else connection.preparedQuery("$USER_COUNT AND phone = $1", Tuple.of(phone))
+    future.setHandler {
+      messageException(message, it)
+      val count = it.result().first().getLong("count")
+      log.debug("Success get match count: {}", count)
+      message.reply(jsonObjectOf("exist" to (count > 0)))
     }
   }
 }
