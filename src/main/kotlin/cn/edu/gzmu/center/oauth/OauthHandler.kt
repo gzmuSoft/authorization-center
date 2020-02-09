@@ -54,10 +54,10 @@ class OauthHandler(
     // These api can access for all users.
     router.post("/oauth/check_token").handler(::checkToken)
     router.post("/oauth/refresh_token").handler(::refreshToken)
-    router.get("/oauth/me").handler(::me)
     // Add RBAC
     router.route().handler(::authentication)
     router.route().handler(::userInfo)
+    router.get("/oauth/me").handler(::me)
   }
 
   /**
@@ -155,7 +155,7 @@ class OauthHandler(
       )
     ) {
       if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
-      context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
+      else context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
     }
   }
 
@@ -287,7 +287,7 @@ class OauthHandler(
     context.user().principal().put("refresh_token", context.bodyAsJson.getString("refresh_token"))
     oAuth2Auth.refresh(context.user()) {
       if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
-      context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
+      else context.response().end(JsonObject.mapFrom(it.result().principal()).toBuffer())
     }
   }
 
@@ -332,7 +332,10 @@ class OauthHandler(
   private fun authentication(context: RoutingContext) {
     val roles = context.user().principal().getJsonArray("authorities")
     eventBus.request<JsonObject>(ADDRESS_ROLE_RESOURCE, roles) {
-      if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
+      if (it.failed()) {
+        context.fail(DatabaseException(it.cause().localizedMessage))
+        return@request
+      }
       val resources = it.result().body()
       val uri = context.request().path()
       val method = context.request().method()
@@ -358,7 +361,10 @@ class OauthHandler(
   private fun userInfo(context: RoutingContext) {
     val username = context.get<String>("username")
     eventBus.request<JsonObject>(ADDRESS_ME, username) {
-      if (it.failed()) context.fail(DatabaseException(it.cause().localizedMessage))
+      if (it.failed()) {
+        context.fail(DatabaseException(it.cause().localizedMessage))
+        return@request
+      }
       val body = it.result().body()
       body.map.forEach { (key, value) -> context.put(key, value) }
       context.next()

@@ -150,15 +150,14 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
     val body = message.body()
     val password = body.getString("password") ?: ""
     val sql = """
-      UPDATE sys_user SET name = $1, email = $2, phone = $3,
-             modify_user = $5, modify_time = $6
-          ${if (password.isBlank()) "" else ", password = $7"}
-      WHERE id = $4 AND is_enable = true
+      UPDATE sys_user SET email = $1, phone = $2,
+             modify_user = $4, modify_time = $5
+          ${if (password.isBlank()) "" else ", password = $6"}
+      WHERE id = $3 AND is_enable = true
     """.trimIndent()
     val tuple = Tuple.of(
-      body.getString("name"), body.getString("email"),
-      body.getString("phone"), body.getLong("id"),
-      body.getString("username"), LocalDateTime.now()
+      body.getString("email"), body.getString("phone"),
+      body.getLong("id"), body.getString("username"), LocalDateTime.now()
     )
     if (!password.isBlank()) tuple.addString(BCrypt.hashpw(password, BCrypt.gensalt(LOG_ROUNDS)))
     connection.preparedQuery(sql, tuple) {

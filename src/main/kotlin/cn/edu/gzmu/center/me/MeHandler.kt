@@ -27,18 +27,8 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
     router.get("/me/menu").handler { this.routes(it, ADDRESS_ROLE_MENU) }
     router.get("/me/info").handler(::info)
     router.patch("/me/user")
-      .handler {
-        Address.parameterHandler.requireJson(
-          it,
-          "name", "email", "phone", "password", "rePassword"
-        )
-      }
-      .handler {
-        Address.parameterHandler.equalsJson(
-          it,
-          "两次密码不一致", Pair("password", "rePassword")
-        )
-      }
+      .handler { Address.parameterHandler.requireJson(it, "name", "email", "phone") }
+      .handler { Address.parameterHandler.equalsJson(it, "两次密码不一致", Pair("password", "rePassword")) }
       .handler(::user)
   }
 
@@ -185,18 +175,16 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
    *      --header 'Content-Type: application/json' \
    *      --header 'Authorization: Bearer ......' \
    *      --data-raw '{
-   *          "name": "...",
    *          "email": "...",
    *          "phone": "...",
    *         "password": "",
    *         "rePassword": ""
    *      }'
    * @apiUse Bearer
-   * @apiParam {String} name         username.
-   * @apiParam {String} email        email.
-   * @apiParam {String} phone        phone.
-   * @apiParam {String} password     password. If do not update, set ""
-   * @apiParam {String} rePassword   rePassword. If do not update, set ""
+   * @apiParam {String} email           email.
+   * @apiParam {String} phone           phone.
+   * @apiParam {String} [password ]     password.
+   * @apiParam {String} [rePassword ]   rePassword.
    * @apiSuccessExample {json} Success-Response:
    *          HTTP/1.1 204 No Content
    */
