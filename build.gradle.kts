@@ -21,7 +21,6 @@ repositories {
 val mainVerticleName = "cn.edu.gzmu.center.MainVerticle"
 val kotlinVersion by extra { "1.3.61" }
 val log4j2Version by extra { "2.13.0" }
-val vertxBootVersion by extra { "1.1.2" }
 val guavaVersion by extra { "28.2-jre" }
 val jbcryptVersion by extra { "0.4" }
 
@@ -41,7 +40,7 @@ dependencies {
   implementation("io.vertx:vertx-consul-client")
   implementation("io.vertx:vertx-lang-kotlin")
   implementation("io.vertx:vertx-consul-client")
-  implementation("io.github.jponge:vertx-boot:$vertxBootVersion")
+  implementation("com.typesafe:config:1.4.0")
   implementation("org.apache.logging.log4j:log4j-slf4j18-impl:$log4j2Version")
   implementation("com.google.guava:guava:$guavaVersion")
   testImplementation("io.vertx:vertx-junit5")
@@ -71,6 +70,6 @@ tasks.withType<Test> {
 }
 
 vertx {
-  mainVerticle = "io.github.jponge.vertx.boot.BootVerticle"
+  mainVerticle = "cn.edu.gzmu.center.BootVerticle"
   vertxVersion = "4.0.0-SNAPSHOT"
 }
