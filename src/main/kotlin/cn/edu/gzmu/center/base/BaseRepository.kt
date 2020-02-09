@@ -1,6 +1,7 @@
 package cn.edu.gzmu.center.base
 
 import cn.edu.gzmu.center.model.extension.messageException
+import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.Future
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
@@ -28,6 +29,12 @@ interface BaseRepository {
   fun dataType(message: Message<Long>)
 
   /**
+   * Get sys data by type.
+   * Type come from [message].
+   */
+  fun dataTypes(message: Message<JsonArray>)
+
+  /**
    * Get sys data by id.
    * Id come from [message].
    */
@@ -49,6 +56,8 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
   companion object {
     const val DATA_TYPE =
       "SELECT d.id, d.name, d.brief FROM sys_data d WHERE d.type = $1 AND is_enable = true ORDER BY sort"
+    const val DATA_TYPES =
+      "SELECT d.id, d.name, d.brief, d.type, d.sort FROM sys_data d WHERE d.type = any ($1) AND is_enable = true"
     const val USER_COUNT = "SELECT count(id) FROM sys_user WHERE is_enable = true"
     val DATA_NAME = """
       WITH RECURSIVE cte as (
@@ -79,6 +88,27 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
       }
       log.debug("Success get sys data by type: {}", result)
       message.reply(JsonArray(result))
+    }
+  }
+
+  override fun dataTypes(message: Message<JsonArray>) {
+    connection.preparedQuery(DATA_TYPES, Tuple.of(message.body().toTypeArray<Long>())) {
+      messageException(message, it)
+      val result = jsonObjectOf()
+      it.result().map { row ->
+        jsonObjectOf(
+          "id" to row.getLong("id"),
+          "name" to row.getString("name"),
+          "brief" to row.getString("brief"),
+          "type" to row.getLong("type"),
+          "sort" to row.getLong("sort")
+        )
+      }.groupBy { row -> row.getLong("type") }
+        .forEach { (key, value) ->
+          result.put(key.toString(), value.sortedBy { ele -> ele.getLong("sort") })
+        }
+      log.debug("Success get sys data by types: {}", message.body())
+      message.reply(result)
     }
   }
 

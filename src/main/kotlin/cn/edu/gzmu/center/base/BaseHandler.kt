@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.kotlin.core.json.jsonArrayOf
 import io.vertx.kotlin.core.json.jsonObjectOf
 
 /**
@@ -18,6 +19,7 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 class BaseHandler(router: Router, private val eventBus: EventBus) {
   init {
     router.get("/base/sysData/type/:type").handler(::dataType)
+    router.get("/base/sysData/types").handler(::dataTypes)
     router.get("/base/sysData/info/:id").handler(::dataInfo)
     router.get("/base/user/exist").handler(::userExist)
   }
@@ -46,6 +48,34 @@ class BaseHandler(router: Router, private val eventBus: EventBus) {
   private fun dataType(context: RoutingContext) {
     val type = context.request().getParam("type").toLong()
     eventBus.request<JsonArray>(Base.ADDRESS_SYS_DATA_TYPE, type) { handleResult(context, it) }
+  }
+
+  /**
+   * @api {GET} /base/sysData/types sysData query by types
+   * @apiVersion 1.0.0
+   * @apiName SysDataByTypes
+   * @apiDescription Get sys data by types.
+   * @apiGroup Base
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/base/sysData/types'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccess {Long}     id       data id
+   * @apiSuccess {String}   name     data name
+   * @apiSuccess {String}   brief    data brief
+   * @apiSuccessExample {json} Success-response:
+   *      HTTP/1.1 200 OK
+   *      [
+   *          { "1": [
+   *             { "id": 1, "name": "...", "brief": "...." },
+   *             { "id": 2, "name": "...", "brief": "...." },
+   *             { "id": 3, "name": "...", "brief": "...." }
+   *          ]}
+   *      ]
+   */
+  private fun dataTypes(context: RoutingContext) {
+    val types = context.request().getParam("types").split(",").map { it.toLong() }
+    eventBus.request<JsonObject>(Base.ADDRESS_SYS_DATA_TYPES, JsonArray(types)) { handleResult(context, it) }
   }
 
   /**

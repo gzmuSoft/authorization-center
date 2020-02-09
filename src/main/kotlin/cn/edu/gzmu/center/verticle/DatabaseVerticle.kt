@@ -58,6 +58,7 @@ class DatabaseVerticle : CoroutineVerticle() {
   private fun baseRepository() {
     val baseRepository: BaseRepository = BaseRepositoryImpl(connection)
     eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_TYPE, baseRepository::dataType)
+    eventBus.localConsumer<JsonArray>(Base.ADDRESS_SYS_DATA_TYPES, baseRepository::dataTypes)
     eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_NAME, baseRepository::dataInfo)
     eventBus.localConsumer<JsonObject>(Base.ADDRESS_SYS_USER_EXIST, baseRepository::userExist)
   }

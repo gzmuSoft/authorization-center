@@ -36,6 +36,7 @@ data class Student (
   val graduateInstitution: String? = null,
   val originalMajor: String? = null,
   val resume: String? = null,
+  val nation: Long = 1,
   val sort: Long = 1,
   val createUser: String?,
   @Serializable(with = LocalDateTimeSerializer::class)
