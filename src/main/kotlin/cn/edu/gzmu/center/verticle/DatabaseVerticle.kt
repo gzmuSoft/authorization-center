@@ -14,11 +14,9 @@ import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
-import io.vertx.kotlin.sqlclient.getConnectionAwait
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
-import io.vertx.sqlclient.SqlConnection
 import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,7 +30,7 @@ import org.slf4j.LoggerFactory
 class DatabaseVerticle : CoroutineVerticle() {
 
   private val log: Logger = LoggerFactory.getLogger(DatabaseVerticle::class.java.name)
-  private lateinit var connection: SqlConnection
+  private lateinit var pool: PgPool
   private lateinit var eventBus: EventBus
 
   /**
@@ -40,9 +38,8 @@ class DatabaseVerticle : CoroutineVerticle() {
    */
   override suspend fun start() {
     try {
-      val client = PgPool.pool(vertx, databaseConfig(), poolConfig())
+      pool = PgPool.pool(vertx, databaseConfig(), poolConfig())
       eventBus = vertx.eventBus()
-      connection = client.getConnectionAwait()
       meRepository()
       baseRepository()
       log.info("Success start database verticle......")
@@ -56,7 +53,7 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun baseRepository() {
-    val baseRepository: BaseRepository = BaseRepositoryImpl(connection)
+    val baseRepository: BaseRepository = BaseRepositoryImpl(pool)
     eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_TYPE, baseRepository::dataType)
     eventBus.localConsumer<JsonArray>(Base.ADDRESS_SYS_DATA_TYPES, baseRepository::dataTypes)
     eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_NAME, baseRepository::dataInfo)
@@ -64,14 +61,15 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun meRepository() {
-    val oauthRepository: OauthRepository = OauthRepositoryImpl(connection)
-    val meRepository: MeRepository = MeRepositoryImpl(connection)
+    val oauthRepository: OauthRepository = OauthRepositoryImpl(pool)
+    val meRepository: MeRepository = MeRepositoryImpl(pool)
     eventBus.localConsumer<JsonArray>(Oauth.ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
     eventBus.localConsumer<String>(Oauth.ADDRESS_ME, oauthRepository::me)
     eventBus.localConsumer<JsonArray>(Me.ADDRESS_ROLE_ROUTES, meRepository::roleRoutes)
     eventBus.localConsumer<JsonArray>(Me.ADDRESS_ROLE_MENU, meRepository::roleMenu)
     eventBus.localConsumer<JsonObject>(Me.ADDRESS_ME_INFO) { launch { meRepository.meInfo(it) } }
     eventBus.localConsumer<JsonObject>(Me.ADDRESS_ME_USER, meRepository::meUser)
+    eventBus.localConsumer<JsonObject>(Me.ADDRESS_ME_INFO_UPDATE, meRepository::meInfoUpdate)
   }
 
   private fun databaseConfig(): PgConnectOptions =
@@ -94,7 +92,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     )
 
   override suspend fun stop() {
-    connection.close()
+    pool.close()
     log.info("Success stop database verticle......")
   }
 }

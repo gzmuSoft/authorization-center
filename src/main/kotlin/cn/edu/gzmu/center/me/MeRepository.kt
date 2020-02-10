@@ -1,18 +1,17 @@
 package cn.edu.gzmu.center.me
 
+import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.entity.Teacher
+import cn.edu.gzmu.center.model.extension.*
 import cn.edu.gzmu.center.model.extension.Address.Companion.LOG_ROUNDS
-import cn.edu.gzmu.center.model.extension.messageException
-import cn.edu.gzmu.center.model.extension.toJsonObject
-import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonArrayOf
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.sqlclient.preparedQueryAwait
-import io.vertx.sqlclient.SqlConnection
+import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.Tuple
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.Logger
@@ -53,7 +52,7 @@ interface MeRepository {
   /**
    * Update current user.
    * User come from [message] body.
-   * - ir: Long user Id
+   * - userId: Long user Id
    * - username: String
    * - name: String
    * - email: String
@@ -62,9 +61,13 @@ interface MeRepository {
    */
   fun meUser(message: Message<JsonObject>)
 
+  /**
+   * Update current user info.
+   */
+  fun meInfoUpdate(message: Message<JsonObject>)
 }
 
-class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
+class MeRepositoryImpl(private val pool: PgPool) : MeRepository {
   private val log: Logger = LoggerFactory.getLogger(MeRepositoryImpl::class.java.name)
 
   companion object {
@@ -92,7 +95,7 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
   }
 
   override fun roleRoutes(message: Message<JsonArray>) {
-    connection.preparedQuery(ROLE_ROUTES, Tuple.of(message.body().toTypeArray<String>())) {
+    pool.preparedQuery(ROLE_ROUTES, Tuple.of(message.body().toTypeArray<String>())) {
       messageException(message, it)
       val result = jsonObjectOf()
       it.result().map { res -> res.getString("name") }.forEach { res -> result.put(res, true) }
@@ -102,7 +105,7 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
   }
 
   override fun roleMenu(message: Message<JsonArray>) {
-    connection.preparedQuery(ROLE_MENU, Tuple.of(message.body().toTypeArray<String>())) {
+    pool.preparedQuery(ROLE_MENU, Tuple.of(message.body().toTypeArray<String>())) {
       messageException(message, it)
       val result = jsonArrayOf()
       it.result().map { menu ->
@@ -157,26 +160,85 @@ class MeRepositoryImpl(private val connection: SqlConnection) : MeRepository {
     """.trimIndent()
     val tuple = Tuple.of(
       body.getString("email"), body.getString("phone"),
-      body.getLong("id"), body.getString("username"), LocalDateTime.now()
+      body.getLong("userId"), body.getString("username"), LocalDateTime.now()
     )
     if (!password.isBlank()) tuple.addString(BCrypt.hashpw(password, BCrypt.gensalt(LOG_ROUNDS)))
-    connection.preparedQuery(sql, tuple) {
+    pool.preparedQuery(sql, tuple) {
       messageException(message, it)
       log.debug("Success update user info: ", body)
       message.reply("success")
     }
   }
 
+  override fun meInfoUpdate(message: Message<JsonObject>) {
+    val body = message.body()
+    val pair =
+      if (body.getBoolean("student")) studentUpdate(body.mapAs(Student.serializer()))
+      else teacherUpdate(body.mapAs(Teacher.serializer()))
+//    pool.query("SELECT * FROM student order by id") {
+//      if (it.failed()) messageException(message, it)
+//      it.result().forEach {row ->
+//        println(row.getLong("id"))
+//        println(row.getString("name"))
+//      }
+//      message.reply("success")
+//    }
+    println(pair.first)
+    pool.preparedQuery(pair.first, pair.second) {
+      if (it.failed()) messageException(message, it)
+      log.debug("Success update user info: ", body)
+      message.reply("success")
+    }
+  }
+
+  private fun studentUpdate(student: Student): Pair<String, Tuple> {
+    val sql = Sql("student")
+    sql.update()
+      .set { "name" }.setIf(student::no).setIf(student::gender).setIf(student::nation)
+      .setIf(student::idNumber).setIf(student::birthday).setIf(student::academic)
+      .setIf(student::graduationDate).setIf(student::graduateInstitution).setIf(student::originalMajor)
+      .setIf(student::resume).setIf(student::modifyTime).setIf(student::modifyUser).where("user_id")
+    val tuple = Tuple.of(student.name)
+      .addOptional(student.no).addOptional(student.gender).addOptional(student.nation)
+      .addOptional(student.idNumber).addOptional(student.birthday).addOptional(student.academic)
+      .addOptional(student.graduationDate).addOptional(student.graduateInstitution).addOptional(student.originalMajor)
+      .addOptional(student.resume).addOptional(student.modifyTime).addOptional(student.modifyUser)
+      .addOptional(student.userId)
+    return Pair(sql.get(), tuple)
+  }
+
+  private fun teacherUpdate(teacher: Teacher): Pair<String, Tuple> {
+    val sql = Sql("teacher")
+    sql.update()
+      .set { "name" }.setIf(teacher::gender).setIf(teacher::idNumber).setIf(teacher::birthday)
+      .setIf(teacher::nation).setIf(teacher::degree).setIf(teacher::academic)
+      .setIf(teacher::graduationDate).setIf(teacher::graduateInstitution).setIf(teacher::major)
+      .setIf(teacher::majorResearch).setIf(teacher::workDate).setIf(teacher::profTitle)
+      .setIf(teacher::profTitleAssDate).setIf(teacher::subjectCategory).setIf(teacher::isAcademicLeader)
+      .setIf(teacher::resume).setIf(teacher::modifyTime).setIf(teacher::modifyUser)
+      .where("user_id")
+    val tuple = Tuple.of(teacher.name)
+      .addOptional(teacher.gender).addOptional(teacher.idNumber).addOptional(teacher.birthday)
+      .addOptional(teacher.nation).addOptional(teacher.degree).addOptional(teacher.academic)
+      .addOptional(teacher.graduationDate).addOptional(teacher.graduateInstitution).addOptional(teacher.major)
+      .addOptional(teacher.majorResearch).addOptional(teacher.workDate).addOptional(teacher.profTitle)
+      .addOptional(teacher.profTitleAssDate).addOptional(teacher.subjectCategory).addOptional(teacher.isAcademicLeader)
+      .addOptional(teacher.resume).addOptional(teacher.modifyTime).addOptional(teacher.modifyUser)
+      .addOptional(teacher.userId)
+    return Pair(sql.get(), tuple)
+  }
+
+
   @Throws(Exception::class)
   private suspend fun studentInfo(userId: Tuple): JsonObject {
-    val rowSet = connection.preparedQueryAwait(STUDENT_BY_USER, userId)
+    val rowSet = pool.preparedQueryAwait(STUDENT_BY_USER, userId)
     return if (rowSet.size() == 0) JsonObject()
     else rowSet.first().toJsonObject<Student>()
   }
 
   @Throws(Exception::class)
   private suspend fun teacherInfo(userId: Tuple): JsonObject {
-    val rowSet = connection.preparedQueryAwait(TEACHER_BY_USER, userId)
+    val rowSet = pool.preparedQueryAwait(TEACHER_BY_USER, userId)
     return if (rowSet.size() == 0) JsonObject()
     else rowSet.first().toJsonObject<Teacher>()
   }

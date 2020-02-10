@@ -12,6 +12,8 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import io.vertx.kotlin.core.json.get
 import io.vertx.sqlclient.Row
+import io.vertx.sqlclient.Tuple
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.lang.Exception
@@ -24,6 +26,9 @@ fun JsonObject.oauth(key: String): String =
 
 fun JsonObject.database(key: String, default: String = ""): String =
   this.getJsonObject(DATABASE).getString(key, default)
+
+fun <T> JsonObject.mapAs(deserializer: DeserializationStrategy<T>): T =
+  KotlinJson.json().parse(deserializer, this.toString())
 
 inline fun <reified To : Any> JsonArray.toTypeArray(): Array<To> =
   Array(this.size()) { this.get<To>(it) }
@@ -47,9 +52,17 @@ inline fun <reified To : Any> Row.toJsonObject(): JsonObject =
     }
     .toMap())
 
+
+internal fun Tuple.addOptional(value: Any?): Tuple =
+  if (value === null) this
+  else this.addValue(value)
+
 object KotlinJson {
-  private val json = Json(JsonConfiguration.Stable)
+
+  private val json = Json(JsonConfiguration(strictMode = false))
+
   fun json() = json
+
 }
 
 fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {

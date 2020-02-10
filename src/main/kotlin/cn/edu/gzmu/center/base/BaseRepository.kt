@@ -7,9 +7,9 @@ import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
+import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
-import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -50,7 +50,7 @@ interface BaseRepository {
 
 }
 
-class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository {
+class BaseRepositoryImpl(private val pool: PgPool) : BaseRepository {
   private val log: Logger = LoggerFactory.getLogger(BaseRepositoryImpl::class.java.name)
 
   companion object {
@@ -77,7 +77,7 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
   }
 
   override fun dataType(message: Message<Long>) {
-    connection.preparedQuery(DATA_TYPE, Tuple.of(message.body())) {
+    pool.preparedQuery(DATA_TYPE, Tuple.of(message.body())) {
       messageException(message, it)
       val result = it.result().map { row ->
         jsonObjectOf(
@@ -92,7 +92,7 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
   }
 
   override fun dataTypes(message: Message<JsonArray>) {
-    connection.preparedQuery(DATA_TYPES, Tuple.of(message.body().toTypeArray<Long>())) {
+    pool.preparedQuery(DATA_TYPES, Tuple.of(message.body().toTypeArray<Long>())) {
       messageException(message, it)
       val result = jsonObjectOf()
       it.result().map { row ->
@@ -114,7 +114,7 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
 
   override fun dataInfo(message: Message<Long>) {
     val id = message.body()
-    connection.preparedQuery(DATA_NAME, Tuple.of(id)) {
+    pool.preparedQuery(DATA_NAME, Tuple.of(id)) {
       messageException(message, it)
       val result = it.result().map { row ->
         jsonObjectOf(
@@ -138,9 +138,9 @@ class BaseRepositoryImpl(private val connection: SqlConnection) : BaseRepository
     val email = body.getString("email") ?: ""
     val phone = body.getString("phone") ?: ""
     val future: Future<RowSet<Row>> =
-      if (!name.isBlank()) connection.preparedQuery("$USER_COUNT AND name = $1", Tuple.of(name))
-      else if (!email.isBlank()) connection.preparedQuery("$USER_COUNT AND email = $1", Tuple.of(email))
-      else connection.preparedQuery("$USER_COUNT AND phone = $1", Tuple.of(phone))
+      if (!name.isBlank()) pool.preparedQuery("$USER_COUNT AND name = $1", Tuple.of(name))
+      else if (!email.isBlank()) pool.preparedQuery("$USER_COUNT AND email = $1", Tuple.of(email))
+      else pool.preparedQuery("$USER_COUNT AND phone = $1", Tuple.of(phone))
     future.setHandler {
       messageException(message, it)
       val count = it.result().first().getLong("count")

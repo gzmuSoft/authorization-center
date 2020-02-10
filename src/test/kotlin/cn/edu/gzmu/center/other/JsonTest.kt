@@ -44,4 +44,15 @@ internal class JsonTest {
     assertEquals(userJson.encode(), stringify)
   }
 
+  @Test
+  internal fun `Json object mapper`() {
+    val toString = jsonObjectOf(
+      "name" to "username",
+      "uuuu" to "11"
+    ).toString()
+    println(toString)
+    val user = KotlinJson.json().parse(SysUser.serializer(), toString)
+    println(user::name.get())
+    println(user::name.name)
+  }
 }

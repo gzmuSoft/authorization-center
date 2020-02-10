@@ -30,20 +30,20 @@ data class Student (
   val birthday: LocalDate? = null,
   @Serializable(with = LocalDateSerializer::class)
   val enterDate: LocalDate? = null,
-  val academic: String? = null,
+  val academic: Long? = null,
   @Serializable(with = LocalDateSerializer::class)
   val graduationDate: LocalDate? = null,
   val graduateInstitution: String? = null,
   val originalMajor: String? = null,
   val resume: String? = null,
-  val nation: Long = 1,
+  val nation: Long? = null,
   val sort: Long = 1,
-  val createUser: String?,
+  val createUser: String? = null,
   @Serializable(with = LocalDateTimeSerializer::class)
   val createTime: LocalDateTime = LocalDateTime.now(),
-  val modifyUser: String?,
+  val modifyUser: String? = null,
   @Serializable(with = LocalDateTimeSerializer::class)
   val modifyTime: LocalDateTime = LocalDateTime.now(),
-  val remark: String?,
+  val remark: String? = null,
   val isEnable: Boolean = false
 )
