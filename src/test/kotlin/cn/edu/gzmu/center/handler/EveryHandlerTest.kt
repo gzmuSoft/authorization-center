@@ -1,6 +1,7 @@
 package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.OauthHelper
+import cn.edu.gzmu.center.model.and
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/8 下午1:34
  */
-internal class BaseHandlerTest : OauthHelper() {
+internal class EveryHandlerTest : OauthHelper() {
 
   @Test
   internal fun `Get sys data by type when passed`(testContext: VertxTestContext) {
@@ -24,6 +25,23 @@ internal class BaseHandlerTest : OauthHelper() {
           assertEquals(ok, response.statusCode())
           val body = response.bodyAsJsonArray()
           assertEquals(2, body.size())
+          testContext.completeNow()
+        }
+      }
+  }
+
+  @Test
+  internal fun `Get sys data by types when passed`(testContext: VertxTestContext) {
+    client.get("/base/sysData/types")
+      .addQueryParam("types", "6" and "9")
+      .send {
+        if (it.failed()) testContext.failNow(it.cause())
+        val response = it.result()
+        testContext.verify {
+          assertEquals(ok, response.statusCode())
+          val body = response.bodyAsJsonObject()
+          assertTrue(body.containsKey("6"))
+          assertTrue(body.containsKey("9"))
           testContext.completeNow()
         }
       }

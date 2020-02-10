@@ -1,5 +1,6 @@
 package cn.edu.gzmu.center.me
 
+import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.entity.Teacher
@@ -67,7 +68,7 @@ interface MeRepository {
   fun meInfoUpdate(message: Message<JsonObject>)
 }
 
-class MeRepositoryImpl(private val pool: PgPool) : MeRepository {
+class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(), MeRepository {
   private val log: Logger = LoggerFactory.getLogger(MeRepositoryImpl::class.java.name)
 
   companion object {

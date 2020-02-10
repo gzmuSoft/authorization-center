@@ -39,6 +39,8 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
   protected lateinit var token: String
   protected lateinit var client: WebClientSession
   protected val ok: Int by lazy { HttpResponseStatus.OK.code() }
+  protected val noContent: Int by lazy { HttpResponseStatus.NO_CONTENT.code() }
+  protected val created: Int by lazy { HttpResponseStatus.CREATED.code() }
 
   init {
     val launch = GlobalScope.launch {

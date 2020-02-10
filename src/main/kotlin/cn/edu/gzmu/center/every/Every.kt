@@ -1,4 +1,4 @@
-package cn.edu.gzmu.center.base
+package cn.edu.gzmu.center.every
 
 /**
  * .
@@ -6,7 +6,7 @@ package cn.edu.gzmu.center.base
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/8 下午1:04
  */
-class Base {
+class Every {
   companion object {
     const val ADDRESS_SYS_DATA_TYPE = "address_sys_data_type"
     const val ADDRESS_SYS_DATA_TYPES = "address_sys_data_types"

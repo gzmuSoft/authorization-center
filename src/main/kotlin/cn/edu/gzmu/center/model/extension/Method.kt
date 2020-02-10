@@ -52,44 +52,20 @@ inline fun <reified To : Any> Row.toJsonObject(): JsonObject =
     }
     .toMap())
 
-
+/**
+ * Add optional param.
+ */
 internal fun Tuple.addOptional(value: Any?): Tuple =
   if (value === null) this
   else this.addValue(value)
 
+/**
+ * Get Singleton kotnlin json.
+ */
 object KotlinJson {
 
   private val json = Json(JsonConfiguration(strictMode = false))
 
   fun json() = json
 
-}
-
-fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
-  if (ar.failed()) {
-    context.fail(DatabaseException(ar.cause().localizedMessage))
-    return
-  }
-  context.response()
-    .setStatusCode(HttpResponseStatus.OK.code())
-    .end(ar.result().body().toString())
-}
-
-fun handleNoResult(context: RoutingContext, status: HttpResponseStatus = HttpResponseStatus.OK,
-                   ar: AsyncResult<Message<Unit>>) {
-  if (ar.failed()) {
-    context.fail(DatabaseException(ar.cause().localizedMessage))
-    return
-  }
-  context.response()
-    .setStatusCode(status.code())
-    .end()
-}
-
-@Throws(Exception::class)
-fun <T> messageException(message: Message<T>, ar: AsyncResult<*>) {
-  if (ar.failed()) {
-    message.fail(500, ar.cause().message)
-    throw ar.cause()
-  }
 }

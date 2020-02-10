@@ -317,13 +317,15 @@ class OauthHandler(
    *      }
    */
   private fun me(context: RoutingContext) {
-    context.response().end(jsonObjectOf(
-      "name" to context.get<String>("name"),
-      "email" to context.get<String>("email"),
-      "avatar" to context.get<String>("avatar"),
-      "image" to context.get<String>("image"),
-      "phone" to context.get<String>("phone")
-    ).toString())
+    context.response().end(
+      jsonObjectOf(
+        "name" to context.get<String>("name"),
+        "email" to context.get<String>("email"),
+        "avatar" to context.get<String>("avatar"),
+        "image" to context.get<String>("image"),
+        "phone" to context.get<String>("phone")
+      ).toString()
+    )
   }
 
   /**
@@ -349,9 +351,10 @@ class OauthHandler(
       if (Objects.isNull(match)) {
         context.fail(ForbiddenException())
         log.debug("Forbidden!")
+      } else {
+        log.debug("Current user can access resource.")
+        context.next()
       }
-      log.debug("Current user can access resource.")
-      context.next()
     }
   }
 
@@ -363,11 +366,10 @@ class OauthHandler(
     eventBus.request<JsonObject>(ADDRESS_ME, username) {
       if (it.failed()) {
         context.fail(DatabaseException(it.cause().localizedMessage))
-        return@request
+      } else {
+        it.result().body().map.forEach { (key, value) -> context.put(key, value) }
+        context.next()
       }
-      val body = it.result().body()
-      body.map.forEach { (key, value) -> context.put(key, value) }
-      context.next()
     }
   }
 

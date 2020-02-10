@@ -1,10 +1,9 @@
 package cn.edu.gzmu.center.me
 
+import cn.edu.gzmu.center.base.BaseHandler
 import cn.edu.gzmu.center.model.extension.Address
-import cn.edu.gzmu.center.model.extension.handleNoResult
-import cn.edu.gzmu.center.model.extension.handleResult
-import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
@@ -17,19 +16,19 @@ import io.vertx.kotlin.core.json.jsonObjectOf
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/6 下午5:46
  */
-class MeHandler(router: Router, private val eventBus: EventBus) {
+class MeHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
 
   init {
-    router.get("/me/routes").handler { this.routes(it, Me.ADDRESS_ROLE_ROUTES) }
-    router.get("/me/menu").handler { this.routes(it, Me.ADDRESS_ROLE_MENU) }
-    router.get("/me/info").handler(::info)
+    router.get("/me/routes").handler { handlerGet<JsonArray, JsonObject>(it, Me.ADDRESS_ROLE_ROUTES, this::routes) }
+    router.get("/me/menu").handler { handlerGet<JsonArray, JsonObject>(it, Me.ADDRESS_ROLE_MENU, this::routes) }
+    router.get("/me/info").handler { handlerGet<JsonObject, JsonObject>(it, Me.ADDRESS_ME_INFO, this::info) }
     router.patch("/me/user")
       .handler { Address.parameterHandler.requireJson(it, "name", "email", "phone") }
       .handler { Address.parameterHandler.equalsJson(it, "两次密码不一致", Pair("password", "rePassword")) }
-      .handler { this.user(it, Me.ADDRESS_ME_USER) }
+      .handler { handlerPatch(it, Me.ADDRESS_ME_USER) }
     router.patch("/me/info")
       .handler { Address.parameterHandler.requireJson(it, "name") }
-      .handler { this.user(it, Me.ADDRESS_ME_INFO_UPDATE) }
+      .handler { handlerPatch(it, Me.ADDRESS_ME_INFO_UPDATE) }
   }
 
   /**
@@ -75,10 +74,8 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
    *        ]
    *      }
    */
-  private fun routes(context: RoutingContext, address: String) {
-    val roles = context.user().principal().getJsonArray("authorities")
-    eventBus.request<JsonObject>(address, roles) { handleResult(context, it) }
-  }
+  private fun routes(context: RoutingContext): JsonArray =
+    context.user().principal().getJsonArray("authorities")
 
   /**
    * @api {GET} /me/info user info
@@ -155,14 +152,12 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
    *          "isEnable": true
    *      }
    */
-  private fun info(context: RoutingContext) {
-    val student = context.user().principal().getBoolean("is_student")
-    val teacher = context.user().principal().getBoolean("is_teacher")
-    val id = context.get<Long>("id")
-    eventBus.request<JsonObject>(
-      Me.ADDRESS_ME_INFO, jsonObjectOf("student" to student, "teacher" to teacher, "id" to id)
-    ) { handleResult(context, it) }
-  }
+  private fun info(context: RoutingContext): JsonObject =
+    jsonObjectOf(
+      "student" to context.user().principal().getBoolean("is_student"),
+      "teacher" to context.user().principal().getBoolean("is_teacher"),
+      "id" to context.get<Long>("id")
+    )
 
   /**
    * @api {PATCH} /me/user update user
@@ -216,15 +211,5 @@ class MeHandler(router: Router, private val eventBus: EventBus) {
    * @apiSuccessExample {json} Success-Response:
    *          HTTP/1.1 204 No Content
    */
-  private fun user(context: RoutingContext, address: String) {
-    val user = context.bodyAsJson
-    user.put("userId", context.get<Long>("id"))
-    user.put("username", context.get<String>("username"))
-    user.put("modifyUser", context.get<String>("username"))
-    user.put("student", context.user().principal().getBoolean("is_student"))
-    user.put("teacher", context.user().principal().getBoolean("is_teacher"))
-    eventBus.request<Unit>(address, user) {
-      handleNoResult(context, HttpResponseStatus.NO_CONTENT, it)
-    }
-  }
+
 }

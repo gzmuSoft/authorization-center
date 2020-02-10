@@ -1,8 +1,8 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.base.Base
-import cn.edu.gzmu.center.base.BaseRepository
-import cn.edu.gzmu.center.base.BaseRepositoryImpl
+import cn.edu.gzmu.center.every.Every
+import cn.edu.gzmu.center.every.EveryRepository
+import cn.edu.gzmu.center.every.EveryRepositoryImpl
 import cn.edu.gzmu.center.me.Me
 import cn.edu.gzmu.center.me.MeRepository
 import cn.edu.gzmu.center.me.MeRepositoryImpl
@@ -53,11 +53,11 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun baseRepository() {
-    val baseRepository: BaseRepository = BaseRepositoryImpl(pool)
-    eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_TYPE, baseRepository::dataType)
-    eventBus.localConsumer<JsonArray>(Base.ADDRESS_SYS_DATA_TYPES, baseRepository::dataTypes)
-    eventBus.localConsumer<Long>(Base.ADDRESS_SYS_DATA_NAME, baseRepository::dataInfo)
-    eventBus.localConsumer<JsonObject>(Base.ADDRESS_SYS_USER_EXIST, baseRepository::userExist)
+    val everyRepository: EveryRepository = EveryRepositoryImpl(pool)
+    eventBus.localConsumer<Long>(Every.ADDRESS_SYS_DATA_TYPE, everyRepository::dataType)
+    eventBus.localConsumer<JsonArray>(Every.ADDRESS_SYS_DATA_TYPES, everyRepository::dataTypes)
+    eventBus.localConsumer<Long>(Every.ADDRESS_SYS_DATA_NAME, everyRepository::dataInfo)
+    eventBus.localConsumer<JsonObject>(Every.ADDRESS_SYS_USER_EXIST, everyRepository::userExist)
   }
 
   private fun meRepository() {

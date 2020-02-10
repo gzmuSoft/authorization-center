@@ -1,6 +1,6 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.base.BaseHandler
+import cn.edu.gzmu.center.every.EveryHandler
 import cn.edu.gzmu.center.me.MeHandler
 import cn.edu.gzmu.center.model.BadRequestException
 import cn.edu.gzmu.center.model.ForbiddenException
@@ -48,7 +48,7 @@ class WebVerticle : CoroutineVerticle() {
       router, config.getJsonObject(OAUTH), eventBus
     )
     MeHandler(router, eventBus)
-    BaseHandler(router, eventBus)
+    EveryHandler(router, eventBus)
     router.route().failureHandler(::exceptionHandler)
     vertx
       .createHttpServer()
