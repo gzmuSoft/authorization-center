@@ -1,5 +1,6 @@
-package cn.edu.gzmu.center.model
+package cn.edu.gzmu.center.util
 
+import cn.edu.gzmu.center.model.BadRequestException
 import io.vertx.ext.web.RoutingContext
 import java.util.*
 

@@ -1,6 +1,6 @@
-package cn.edu.gzmu.center.model.extension
+package cn.edu.gzmu.center.model.address
 
-import cn.edu.gzmu.center.model.ParameterHandler
+import cn.edu.gzmu.center.util.ParameterHandler
 
 /**
  * .

@@ -1,15 +1,15 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.every.EveryHandler
-import cn.edu.gzmu.center.me.MeHandler
+import cn.edu.gzmu.center.handler.EveryHandler
+import cn.edu.gzmu.center.handler.MeHandler
+import cn.edu.gzmu.center.handler.OauthHandler
 import cn.edu.gzmu.center.model.BadRequestException
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
 import cn.edu.gzmu.center.model.extension.oauth
-import cn.edu.gzmu.center.oauth.Oauth
-import cn.edu.gzmu.center.oauth.Oauth.Companion.OAUTH
-import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
-import cn.edu.gzmu.center.oauth.OauthHandler
+import cn.edu.gzmu.center.model.address.Oauth
+import cn.edu.gzmu.center.model.address.Oauth.Companion.OAUTH
+import cn.edu.gzmu.center.model.address.Oauth.Companion.SERVER
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.ext.auth.oauth2.OAuth2Auth

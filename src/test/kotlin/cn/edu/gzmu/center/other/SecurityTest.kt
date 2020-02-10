@@ -1,9 +1,9 @@
 package cn.edu.gzmu.center.other
 
 import cn.edu.gzmu.center.OauthHelper
-import cn.edu.gzmu.center.model.extension.Address.Companion.LOG_ROUNDS
+import cn.edu.gzmu.center.model.address.Address.Companion.LOG_ROUNDS
 import cn.edu.gzmu.center.model.extension.oauth
-import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
+import cn.edu.gzmu.center.model.address.Oauth.Companion.SERVER
 import io.vertx.core.Vertx
 import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxTestContext

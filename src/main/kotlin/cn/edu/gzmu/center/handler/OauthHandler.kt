@@ -1,19 +1,19 @@
-package cn.edu.gzmu.center.oauth
+package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.model.DatabaseException
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
-import cn.edu.gzmu.center.model.extension.Address.Companion.RESULT
-import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ME
-import cn.edu.gzmu.center.oauth.Oauth.Companion.ADDRESS_ROLE_RESOURCE
-import cn.edu.gzmu.center.oauth.Oauth.Companion.CLIENT_ID
-import cn.edu.gzmu.center.oauth.Oauth.Companion.CODE
-import cn.edu.gzmu.center.oauth.Oauth.Companion.LOGOUT_REDIRECT_URL
-import cn.edu.gzmu.center.oauth.Oauth.Companion.LOGOUT_URI
-import cn.edu.gzmu.center.oauth.Oauth.Companion.REDIRECT_URI
-import cn.edu.gzmu.center.oauth.Oauth.Companion.SCOPE
-import cn.edu.gzmu.center.oauth.Oauth.Companion.SECURITY
-import cn.edu.gzmu.center.oauth.Oauth.Companion.SERVER
+import cn.edu.gzmu.center.model.address.Address.Companion.RESULT
+import cn.edu.gzmu.center.model.address.Oauth.Companion.ADDRESS_ME
+import cn.edu.gzmu.center.model.address.Oauth.Companion.ADDRESS_ROLE_RESOURCE
+import cn.edu.gzmu.center.model.address.Oauth.Companion.CLIENT_ID
+import cn.edu.gzmu.center.model.address.Oauth.Companion.CODE
+import cn.edu.gzmu.center.model.address.Oauth.Companion.LOGOUT_REDIRECT_URL
+import cn.edu.gzmu.center.model.address.Oauth.Companion.LOGOUT_URI
+import cn.edu.gzmu.center.model.address.Oauth.Companion.REDIRECT_URI
+import cn.edu.gzmu.center.model.address.Oauth.Companion.SCOPE
+import cn.edu.gzmu.center.model.address.Oauth.Companion.SECURITY
+import cn.edu.gzmu.center.model.address.Oauth.Companion.SERVER
 import cn.edu.gzmu.center.util.AntPathMatcher
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.eventbus.EventBus
@@ -345,8 +345,9 @@ class OauthHandler(
         .find { res ->
           // url match.
           matcher.match(res.getString("url") ?: "", uri)
+            && method.name() == res.getString("method") // uri and method must match.
             && (res.getString("role") == "ROLE_PUBLIC" // If this resource is public, everyone can access.
-            || method.name() == res.getString("method")) // If this resource need authentication, the method must match.
+            || roles.contains(res.getString("role"))) // If this resource need authentication, the role must match.
         }
       if (Objects.isNull(match)) {
         context.fail(ForbiddenException())

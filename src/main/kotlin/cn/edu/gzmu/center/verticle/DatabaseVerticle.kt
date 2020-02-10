@@ -1,14 +1,9 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.every.Every
-import cn.edu.gzmu.center.every.EveryRepository
-import cn.edu.gzmu.center.every.EveryRepositoryImpl
-import cn.edu.gzmu.center.me.Me
-import cn.edu.gzmu.center.me.MeRepository
-import cn.edu.gzmu.center.me.MeRepositoryImpl
-import cn.edu.gzmu.center.oauth.Oauth
-import cn.edu.gzmu.center.oauth.OauthRepository
-import cn.edu.gzmu.center.oauth.OauthRepositoryImpl
+import cn.edu.gzmu.center.model.address.Every
+import cn.edu.gzmu.center.model.address.Me
+import cn.edu.gzmu.center.model.address.Oauth
+import cn.edu.gzmu.center.repository.*
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -53,7 +48,8 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun baseRepository() {
-    val everyRepository: EveryRepository = EveryRepositoryImpl(pool)
+    val everyRepository: EveryRepository =
+      EveryRepositoryImpl(pool)
     eventBus.localConsumer<Long>(Every.ADDRESS_SYS_DATA_TYPE, everyRepository::dataType)
     eventBus.localConsumer<JsonArray>(Every.ADDRESS_SYS_DATA_TYPES, everyRepository::dataTypes)
     eventBus.localConsumer<Long>(Every.ADDRESS_SYS_DATA_NAME, everyRepository::dataInfo)
@@ -61,7 +57,8 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun meRepository() {
-    val oauthRepository: OauthRepository = OauthRepositoryImpl(pool)
+    val oauthRepository: OauthRepository =
+      OauthRepositoryImpl(pool)
     val meRepository: MeRepository = MeRepositoryImpl(pool)
     eventBus.localConsumer<JsonArray>(Oauth.ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
     eventBus.localConsumer<String>(Oauth.ADDRESS_ME, oauthRepository::me)

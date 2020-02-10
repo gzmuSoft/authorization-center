@@ -1,11 +1,11 @@
-package cn.edu.gzmu.center.me
+package cn.edu.gzmu.center.repository
 
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.entity.Teacher
 import cn.edu.gzmu.center.model.extension.*
-import cn.edu.gzmu.center.model.extension.Address.Companion.LOG_ROUNDS
+import cn.edu.gzmu.center.model.address.Address.Companion.LOG_ROUNDS
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -68,7 +68,8 @@ interface MeRepository {
   fun meInfoUpdate(message: Message<JsonObject>)
 }
 
-class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(), MeRepository {
+class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(),
+  MeRepository {
   private val log: Logger = LoggerFactory.getLogger(MeRepositoryImpl::class.java.name)
 
   companion object {

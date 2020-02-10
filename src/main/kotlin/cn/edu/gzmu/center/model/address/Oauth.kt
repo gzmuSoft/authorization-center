@@ -1,4 +1,4 @@
-package cn.edu.gzmu.center.oauth
+package cn.edu.gzmu.center.model.address
 
 /**
  * All keys that cannot be changed.

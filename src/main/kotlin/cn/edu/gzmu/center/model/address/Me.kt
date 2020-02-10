@@ -1,4 +1,4 @@
-package cn.edu.gzmu.center.me
+package cn.edu.gzmu.center.model.address
 
 /**
  * .

@@ -5,10 +5,7 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.AsyncResult
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
-import io.vertx.core.json.JsonObject
-import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import java.lang.Exception
 
 /**
  * Base Handler.

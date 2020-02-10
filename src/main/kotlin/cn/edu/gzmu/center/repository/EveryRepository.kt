@@ -1,4 +1,4 @@
-package cn.edu.gzmu.center.every
+package cn.edu.gzmu.center.repository
 
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.extension.toTypeArray
@@ -50,7 +50,8 @@ interface EveryRepository {
 
 }
 
-class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(), EveryRepository {
+class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(),
+  EveryRepository {
   private val log: Logger = LoggerFactory.getLogger(EveryRepositoryImpl::class.java.name)
 
   companion object {

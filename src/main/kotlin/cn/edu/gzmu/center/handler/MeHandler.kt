@@ -1,7 +1,8 @@
-package cn.edu.gzmu.center.me
+package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.base.BaseHandler
-import cn.edu.gzmu.center.model.extension.Address
+import cn.edu.gzmu.center.model.address.Me
+import cn.edu.gzmu.center.model.address.Address
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -19,9 +20,12 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 class MeHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
 
   init {
-    router.get("/me/routes").handler { handlerGet<JsonArray, JsonObject>(it, Me.ADDRESS_ROLE_ROUTES, this::routes) }
-    router.get("/me/menu").handler { handlerGet<JsonArray, JsonObject>(it, Me.ADDRESS_ROLE_MENU, this::routes) }
-    router.get("/me/info").handler { handlerGet<JsonObject, JsonObject>(it, Me.ADDRESS_ME_INFO, this::info) }
+    router.get("/me/routes").handler { handlerGet<JsonArray, JsonObject>(it,
+      Me.ADDRESS_ROLE_ROUTES, this::routes) }
+    router.get("/me/menu").handler { handlerGet<JsonArray, JsonObject>(it,
+      Me.ADDRESS_ROLE_MENU, this::routes) }
+    router.get("/me/info").handler { handlerGet<JsonObject, JsonObject>(it,
+      Me.ADDRESS_ME_INFO, this::info) }
     router.patch("/me/user")
       .handler { Address.parameterHandler.requireJson(it, "name", "email", "phone") }
       .handler { Address.parameterHandler.equalsJson(it, "两次密码不一致", Pair("password", "rePassword")) }

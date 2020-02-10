@@ -1,22 +1,16 @@
 package cn.edu.gzmu.center.model.extension
 
-import cn.edu.gzmu.center.model.DatabaseException
-import cn.edu.gzmu.center.model.extension.Address.Companion.DATABASE
-import cn.edu.gzmu.center.oauth.Oauth.Companion.OAUTH
+import cn.edu.gzmu.center.model.address.Address.Companion.DATABASE
+import cn.edu.gzmu.center.model.address.Oauth.Companion.OAUTH
 import com.google.common.base.CaseFormat
-import io.netty.handler.codec.http.HttpResponseStatus
-import io.vertx.core.AsyncResult
-import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.web.RoutingContext
 import io.vertx.kotlin.core.json.get
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import java.lang.Exception
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.reflect.full.primaryConstructor
