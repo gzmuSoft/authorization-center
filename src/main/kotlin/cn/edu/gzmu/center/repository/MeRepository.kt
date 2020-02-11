@@ -177,14 +177,6 @@ class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(),
     val pair =
       if (body.getBoolean("student")) studentUpdate(body.mapAs(Student.serializer()))
       else teacherUpdate(body.mapAs(Teacher.serializer()))
-//    pool.query("SELECT * FROM student order by id") {
-//      if (it.failed()) messageException(message, it)
-//      it.result().forEach {row ->
-//        println(row.getLong("id"))
-//        println(row.getString("name"))
-//      }
-//      message.reply("success")
-//    }
     println(pair.first)
     pool.preparedQuery(pair.first, pair.second) {
       if (it.failed()) messageException(message, it)

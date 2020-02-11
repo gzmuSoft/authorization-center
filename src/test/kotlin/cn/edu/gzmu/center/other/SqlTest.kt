@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.other
 
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.and
+import cn.edu.gzmu.center.model.entity.SysRole
 import cn.edu.gzmu.center.model.entity.SysUser
 import io.vertx.kotlin.core.json.jsonObjectOf
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +27,11 @@ class SqlTest {
     private const val EXPECT_SELECT5 =
       "SELECT id, name, spell FROM sys_data WHERE sort = \$1"
     private const val EXPECT_SELECT6 =
-      "SELECT name, spell FROM sys_user WHERE is_enable = null AND name = \$1 AND create_time = \$2"
+      "SELECT name, spell FROM sys_user WHERE is_enable = true AND name = \$1 AND create_time = \$2"
+    private const val EXPECT_SELECT7 =
+      "SELECT create_time, create_user, des, icon_cls, id, is_enable, modify_time, modify_user, name, parent_id, remark, sort, spell FROM sys_role WHERE is_enable = true AND parent_id = \$1"
+    private const val EXPECT_SELECT8 =
+      "SELECT create_user, des, icon_cls, is_enable, modify_time, modify_user, name, remark, sort, spell FROM sys_role WHERE is_enable = true AND parent_id = \$1"
     private const val EXPECT_UPDATE =
       "UPDATE sys_data SET remark = \$1 , name = \$2 , spell = \$3 WHERE id = 1"
   }
@@ -68,11 +73,21 @@ class SqlTest {
     val user = SysUser(name = "test", spell = "test")
     val selectEntity = Sql("sys_user")
       .select { "name" and "spell" }
-      .where { "is_enable = null" }
+      .where { "is_enable = true" }
       .and(user::name)
       .and(user::email)
       .and(user::createTime)
     assertEquals(EXPECT_SELECT6, selectEntity.get().trim())
+
+    val role = Sql("sys_role")
+      .select(SysRole::class)
+      .where { "is_enable = true" }
+      .and { "parent_id" to "" }
+    assertEquals(EXPECT_SELECT7, role.get().trim())
+    role.select(SysRole::class, "id", "parent_id", "create_time")
+      .where { "is_enable = true" }
+      .and { "parent_id" to "" }
+    assertEquals(EXPECT_SELECT8, role.get().trim())
   }
 
   @Test

@@ -3,6 +3,7 @@ package cn.edu.gzmu.center.verticle
 import cn.edu.gzmu.center.model.address.Every
 import cn.edu.gzmu.center.model.address.Me
 import cn.edu.gzmu.center.model.address.Oauth
+import cn.edu.gzmu.center.model.address.Role
 import cn.edu.gzmu.center.repository.*
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
@@ -37,6 +38,7 @@ class DatabaseVerticle : CoroutineVerticle() {
       eventBus = vertx.eventBus()
       meRepository()
       baseRepository()
+      systemRepository()
       log.info("Success start database verticle......")
       vertx.exceptionHandler {
         log.error("Get a exception")
@@ -47,9 +49,15 @@ class DatabaseVerticle : CoroutineVerticle() {
     }
   }
 
+  private fun systemRepository() {
+    val roleRepository: RoleRepository = RoleRepositoryImpl(pool)
+    eventBus.localConsumer<Long>(Role.ADDRESS_ROLE_PARENT, roleRepository::roleParent)
+    eventBus.localConsumer<Long>(Role.ADDRESS_ROLE_RES, roleRepository::roleRes)
+    eventBus.localConsumer<JsonObject>(Role.ADDRESS_ROLE_UPDATE, roleRepository::roleUpdate)
+  }
+
   private fun baseRepository() {
-    val everyRepository: EveryRepository =
-      EveryRepositoryImpl(pool)
+    val everyRepository: EveryRepository = EveryRepositoryImpl(pool)
     eventBus.localConsumer<Long>(Every.ADDRESS_SYS_DATA_TYPE, everyRepository::dataType)
     eventBus.localConsumer<JsonArray>(Every.ADDRESS_SYS_DATA_TYPES, everyRepository::dataTypes)
     eventBus.localConsumer<Long>(Every.ADDRESS_SYS_DATA_NAME, everyRepository::dataInfo)
@@ -57,8 +65,7 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun meRepository() {
-    val oauthRepository: OauthRepository =
-      OauthRepositoryImpl(pool)
+    val oauthRepository: OauthRepository = OauthRepositoryImpl(pool)
     val meRepository: MeRepository = MeRepositoryImpl(pool)
     eventBus.localConsumer<JsonArray>(Oauth.ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)
     eventBus.localConsumer<String>(Oauth.ADDRESS_ME, oauthRepository::me)

@@ -5,10 +5,7 @@ import cn.edu.gzmu.center.verticle.DatabaseVerticle
 import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpResponseStatus
-import io.vertx.core.CompositeFuture
-import io.vertx.core.DeploymentOptions
-import io.vertx.core.MultiMap
-import io.vertx.core.Vertx
+import io.vertx.core.*
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.client.WebClientOptions
@@ -91,5 +88,10 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
     }
   }
 
+  protected fun resultCheck(testContext: VertxTestContext, ar: AsyncResult<*>) {
+    if (ar.succeeded()) return
+    testContext.failNow(ar.cause())
+    throw ar.cause()
+  }
 }
 

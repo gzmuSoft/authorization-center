@@ -1,9 +1,12 @@
 package cn.edu.gzmu.center.model
 
+import cn.edu.gzmu.center.model.entity.SysRole
 import com.google.common.base.CaseFormat
 import com.google.common.base.Converter
 import io.vertx.core.json.JsonObject
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty0
+import kotlin.reflect.full.memberProperties
 
 
 /**
@@ -27,6 +30,18 @@ class Sql(private val table: String) {
   fun select(condition: () -> String): Sql {
     clear()
     sql = "SELECT ${condition()} FROM $table "
+    return this
+  }
+
+  /**
+   * Select by KClass [condition].
+   */
+  fun select(condition: KClass<SysRole>, vararg exclude: String = emptyArray()): Sql {
+    select {
+      condition.memberProperties.map {
+        converter.convert(it.name).toString()
+      }.filterNot { exclude.contains(it) }.joinToString(", ")
+    }
     return this
   }
 
@@ -64,6 +79,14 @@ class Sql(private val table: String) {
   }
 
   /**
+   * Add is enable
+   */
+  fun whereEnable(): Sql {
+    sql += "WHERE is_enable = true "
+    return this
+  }
+
+  /**
    * Where condition.
    */
   fun where(condition: String): Sql {
@@ -85,7 +108,7 @@ class Sql(private val table: String) {
   private fun condition(key: String, field: () -> Pair<String, Any?> = { "name" to null }): Sql {
     val pair = field()
     if (pair.second !== null) {
-      sql += "$key ${pair.first} = \$$index "
+      sql += "$key ${converter.convert(pair.first)} = \$$index "
       index++
     }
     return this
@@ -111,6 +134,11 @@ class Sql(private val table: String) {
     json.forEach { (key, value) ->
       and(key to value)
     }
+    return this
+  }
+
+  fun and(where: String): Sql {
+    sql += "AND $where "
     return this
   }
 
@@ -155,6 +183,30 @@ class Sql(private val table: String) {
   }
 
   /**
+   * order by [field]
+   */
+  fun orderBy(field: () -> String): Sql {
+    sql += "ORDER BY ${field()} "
+    return this
+  }
+
+  /**
+   * left join
+   */
+  fun leftJoin(field: () -> String): Sql {
+    sql += "LEFT JOIN ${field()} "
+    return this
+  }
+
+  /**
+   * on
+   */
+  fun on(field: () -> String): Sql {
+    sql += "ON ${field()} "
+    return this
+  }
+
+  /**
    * Restart sql.
    */
   fun clear(): Sql {
@@ -167,6 +219,7 @@ class Sql(private val table: String) {
    * Get sql.
    */
   fun get(): String = sql
+
 }
 
 internal infix fun String.and(s: String): String = "$this, $s"
