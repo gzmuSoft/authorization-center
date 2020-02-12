@@ -1,9 +1,6 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.handler.EveryHandler
-import cn.edu.gzmu.center.handler.MeHandler
-import cn.edu.gzmu.center.handler.OauthHandler
-import cn.edu.gzmu.center.handler.RoleHandler
+import cn.edu.gzmu.center.handler.*
 import cn.edu.gzmu.center.model.BadRequestException
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
@@ -13,6 +10,7 @@ import cn.edu.gzmu.center.model.address.Oauth.Companion.OAUTH
 import cn.edu.gzmu.center.model.address.Oauth.Companion.SERVER
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
+import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions
 import io.vertx.ext.auth.oauth2.OAuth2FlowType
@@ -48,9 +46,7 @@ class WebVerticle : CoroutineVerticle() {
       OAuth2Auth.create(vertx, oauthConfig()),
       router, config.getJsonObject(OAUTH), eventBus
     )
-    MeHandler(router, eventBus)
-    EveryHandler(router, eventBus)
-    RoleHandler(router, eventBus)
+    handlerRegister(router, eventBus)
     router.route().failureHandler(::exceptionHandler)
     vertx
       .createHttpServer()
@@ -66,6 +62,13 @@ class WebVerticle : CoroutineVerticle() {
       log.error("Get a exception")
       throw it
     }
+  }
+
+  private fun handlerRegister(router: Router, eventBus: EventBus) {
+    MeHandler(router, eventBus)
+    EveryHandler(router, eventBus)
+    RoleHandler(router, eventBus)
+    ResHandler(router, eventBus)
   }
 
   /**

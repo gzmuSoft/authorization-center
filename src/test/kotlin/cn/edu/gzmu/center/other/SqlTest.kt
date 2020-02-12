@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.other
 
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.and
+import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.entity.SysRole
 import cn.edu.gzmu.center.model.entity.SysUser
 import io.vertx.kotlin.core.json.jsonObjectOf
@@ -32,6 +33,8 @@ class SqlTest {
       "SELECT create_time, create_user, des, icon_cls, id, is_enable, modify_time, modify_user, name, parent_id, remark, sort, spell FROM sys_role WHERE is_enable = true AND parent_id = \$1"
     private const val EXPECT_SELECT8 =
       "SELECT create_user, des, icon_cls, is_enable, modify_time, modify_user, name, remark, sort, spell FROM sys_role WHERE is_enable = true AND parent_id = \$1"
+    private const val EXPECT_SELECT9 =
+      "SELECT academic, birthday, classes_id, college_id, create_time, create_user, dep_id, enter_date, gender, graduate_institution, graduation_date, id, id_number, is_enable, modify_time, modify_user, name, nation, no, original_major, remark, resume, school_id, sort, specialty_id, spell, user_id FROM student WHERE is_enable = true ORDER BY id LIMIT 10 OFFSET 0"
     private const val EXPECT_UPDATE =
       "UPDATE sys_data SET remark = \$1 , name = \$2 , spell = \$3 WHERE id = 1"
   }
@@ -103,6 +106,15 @@ class SqlTest {
         .setIf(user::spell)
         .where { "id = 1" }
     assertEquals(EXPECT_UPDATE, update.get().trim())
+  }
+
+  @Test
+  internal fun `Test select page sql`() {
+    val page = Sql("student")
+      .select(Student::class)
+      .whereEnable()
+      .page("id")
+    println(page.count().trim())
   }
 }
 

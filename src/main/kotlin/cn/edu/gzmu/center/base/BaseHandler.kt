@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.AsyncResult
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 
 /**
@@ -30,6 +31,23 @@ open class BaseHandler(private val eventBus: EventBus) {
     handlerJson(context, address, HttpResponseStatus.NO_CONTENT)
   }
 
+  fun handlerPage(
+    context: RoutingContext,
+    address: String,
+    params: (context: RoutingContext) -> JsonObject = { JsonObject() }
+  ) {
+    val message = params(context)
+    // Add page params.
+    message.put("sort", context.request().getParam("sort") ?: "")
+    val page = context.request().getParam("page").toLong()
+    val size = context.request().getParam("size").toLong()
+    message.put("offset", (page - 1) * size)
+    message.put("size", size)
+    eventBus.request<JsonObject>(address, message) {
+      handleResult<JsonObject>(context, it)
+    }
+  }
+
   fun <T, R> handlerGet(
     context: RoutingContext, address: String,
     params: (context: RoutingContext) -> T
@@ -51,7 +69,7 @@ open class BaseHandler(private val eventBus: EventBus) {
     }
   }
 
-  fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
+  private fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
     if (ar.failed()) {
       context.fail(DatabaseException(ar.cause().localizedMessage))
       return
@@ -61,7 +79,7 @@ open class BaseHandler(private val eventBus: EventBus) {
       .end(ar.result().body().toString())
   }
 
-  fun handleNoResult(
+  private fun handleNoResult(
     context: RoutingContext, status: HttpResponseStatus = HttpResponseStatus.OK,
     ar: AsyncResult<Message<Unit>>
   ) {

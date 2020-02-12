@@ -1,6 +1,5 @@
 package cn.edu.gzmu.center.model
 
-import cn.edu.gzmu.center.model.entity.SysRole
 import com.google.common.base.CaseFormat
 import com.google.common.base.Converter
 import io.vertx.core.json.JsonObject
@@ -36,7 +35,7 @@ class Sql(private val table: String) {
   /**
    * Select by KClass [condition].
    */
-  fun select(condition: KClass<SysRole>, vararg exclude: String = emptyArray()): Sql {
+  fun select(condition: KClass<*>, vararg exclude: String = emptyArray()): Sql {
     select {
       condition.memberProperties.map {
         converter.convert(it.name).toString()
@@ -219,6 +218,28 @@ class Sql(private val table: String) {
    * Get sql.
    */
   fun get(): String = sql
+
+  fun count(field: () -> String = { "id" }): String {
+    val start = sql.indexOf("SELECT") + 7
+    val end = sql.indexOf("FROM") - 1
+    return sql.replaceRange(IntRange(start, end), "count(${field()}) ")
+  }
+
+  /**
+   * page
+   */
+  fun page(sort: String = "sort"): Sql {
+    if (sort.isNotBlank()) {
+      sql += "ORDER BY $sort "
+    }
+    sql += "LIMIT $${index++} OFFSET $${index++} "
+    return this
+  }
+
+  fun like(name: () -> String): Sql {
+    sql += "AND ${name()} LIKE $${index++} "
+    return this
+  }
 
 }
 

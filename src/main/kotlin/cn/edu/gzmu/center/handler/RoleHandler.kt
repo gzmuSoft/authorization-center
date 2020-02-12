@@ -21,7 +21,7 @@ class RoleHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
     router.get("/role/res/:id")
       .handler { handlerGet<Long, JsonArray>(it, Role.ADDRESS_ROLE_RES, this::roleRes) }
     router.patch("/role")
-      .handler { Address.parameterHandler.requireJson(it, "id", "isEnable") }
+      .handler { Address.parameterHandler.requireJson(it, "id") }
       .handler { handlerPatch(it, Role.ADDRESS_ROLE_UPDATE) }
   }
 

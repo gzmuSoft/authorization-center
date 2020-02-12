@@ -20,7 +20,6 @@ data class AuthCenterRes(
   // Only GET POST PATCH PUT DELETE
   val method: String = "GET",
   val spell: String? = null,
-  val type: Int = 1,
   val sort: Long = 1,
   val createUser: String? = null,
   @Serializable(with = LocalDateTimeSerializer::class)
