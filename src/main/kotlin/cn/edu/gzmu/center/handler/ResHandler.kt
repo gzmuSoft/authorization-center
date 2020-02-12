@@ -92,4 +92,34 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
    * @apiSuccessExample {json} Success-response:
    *      HTTP/1.1 204 No Content
    */
+
+  /**
+   * @api {POST} /res add auth center
+   * @apiVersion 1.0.0
+   * @apiName ResAdd
+   * @apiDescription Update res. Res have three types.
+   *     1. Add menu —— name is route, url is menu name, method is menu icon, remark is mark
+   *     2. Add resource —— name and remark is null
+   *     3. Add route —— name is route, url is null, others is default.
+   *     Other values will get all resource.
+   * @apiGroup Res
+   * @apiUse Bearer
+   * @apiExample Example usage:
+   *      curl --location --request PATCH 'http://127.0.0.1:8889/role' \
+   *        --header 'Authorization: Bearer token'
+   *        --data-raw '{
+   *                      "id": 1,
+   *                      "name": "test"
+   *                    }'
+   * @apiParam {Long}     id                    data id
+   * @apiParam {Long}     type                  data type
+   * @apiParam {String}   [name ]               data name
+   * @apiParam {String}   [url ]                url
+   * @apiParam {String}   [describe ]           describe
+   * @apiParam {String}   [method ]             method
+   * @apiParam {String}   [sort ]               sort
+   * @apiParam {String}   [remark ]             remark
+   * @apiSuccessExample {json} Success-response:
+   *      HTTP/1.1 201 Created
+   */
 }

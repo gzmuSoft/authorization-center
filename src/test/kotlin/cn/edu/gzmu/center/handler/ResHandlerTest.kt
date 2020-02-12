@@ -57,7 +57,7 @@ class ResHandlerTest : OauthHelper() {
 
   @Test
   internal fun `Delete res when passed`(testContext: VertxTestContext) {
-    client.delete("/res/1")
+    client.delete("/res/1000")
       .send {
         resultCheck(testContext, it)
         val response = it.result()
