@@ -4,6 +4,7 @@ import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.AuthCenterRes
 import cn.edu.gzmu.center.model.extension.addOptional
+import cn.edu.gzmu.center.model.extension.addOrNull
 import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
@@ -36,6 +37,11 @@ interface ResRepository {
   fun resUpdate(message: Message<JsonObject>)
 
   /**
+   * res update.
+   */
+  fun resCreate(message: Message<JsonObject>)
+
+  /**
    * res delete.
    */
   fun resDelete(message: Message<Long>)
@@ -43,7 +49,7 @@ interface ResRepository {
 
 class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(), ResRepository {
   private val log: Logger = LoggerFactory.getLogger(ResRepositoryIImpl::class.java.name)
-
+  private val table = "auth_center_res"
   override suspend fun res(message: Message<JsonObject>) {
     val body = message.body()
     val type = body.getLong("type")
@@ -90,7 +96,7 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(), ResReposi
   override fun resUpdate(message: Message<JsonObject>) {
     val body = message.body()
     val res = body.mapAs(AuthCenterRes.serializer())
-    val sql = Sql("auth_center_res")
+    val sql = Sql(table)
       .update().set { "id" }.setIf(res::modifyTime).setIf(res::modifyUser)
       .setIf(res::name).setIf(res::url).setIf(res::describe).setIf(res::method)
       .setIf(res::sort).setIf(res::remark).whereEnable()
@@ -105,9 +111,25 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(), ResReposi
     }
   }
 
+  override fun resCreate(message: Message<JsonObject>) {
+    val body = message.body()
+    val sql = Sql(table)
+      .insert("create_user", "create_time", "name", "url", "describe", "method", "sort", "remark")
+      .get()
+    val res = body.mapAs(AuthCenterRes.serializer())
+    pool.preparedQuery(
+      sql, Tuple.of(res.createUser, res.createTime).addOrNull(res.name).addOrNull(res.url)
+        .addOrNull(res.describe).addOrNull(res.method).addOrNull(res.sort).addOrNull(res.remark)
+    ) {
+      messageException(message, it)
+      log.debug("Success create res: {}", res)
+      message.reply("success")
+    }
+  }
+
   override fun resDelete(message: Message<Long>) {
     val id = message.body()
-    val sql = Sql("auth_center_res")
+    val sql = Sql(table)
       .update().set { "is_enable" }
       .whereEnable().and { "id" to id }.get()
     pool.preparedQuery(sql, Tuple.of(false, id)) {

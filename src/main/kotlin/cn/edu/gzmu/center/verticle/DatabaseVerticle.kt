@@ -57,6 +57,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES) { launch { resRepository.res(it) } }
     eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES_UPDATE, resRepository::resUpdate)
     eventBus.localConsumer<Long>(Res.ADDRESS_RES_DELETE, resRepository::resDelete)
+    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES_CREATE, resRepository::resCreate)
   }
 
   private fun baseRepository() {

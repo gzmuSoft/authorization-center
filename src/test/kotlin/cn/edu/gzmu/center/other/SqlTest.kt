@@ -34,9 +34,13 @@ class SqlTest {
     private const val EXPECT_SELECT8 =
       "SELECT create_user, des, icon_cls, is_enable, modify_time, modify_user, name, remark, sort, spell FROM sys_role WHERE is_enable = true AND parent_id = \$1"
     private const val EXPECT_SELECT9 =
-      "SELECT academic, birthday, classes_id, college_id, create_time, create_user, dep_id, enter_date, gender, graduate_institution, graduation_date, id, id_number, is_enable, modify_time, modify_user, name, nation, no, original_major, remark, resume, school_id, sort, specialty_id, spell, user_id FROM student WHERE is_enable = true ORDER BY id LIMIT 10 OFFSET 0"
+      "SELECT count(id) FROM student WHERE is_enable = true ORDER BY id LIMIT \$1 OFFSET \$2"
+    private const val EXPECT_SELECT10 =
+      "SELECT id FROM sys_user WHERE is_enable = true AND spell = \$1"
     private const val EXPECT_UPDATE =
       "UPDATE sys_data SET remark = \$1 , name = \$2 , spell = \$3 WHERE id = 1"
+    private const val EXPECT_INSERT =
+      "INSERT INTO sys_user (name,spell,sort,create_time) VALUES (\$1,\$2,\$3,\$4)"
   }
 
   @Test
@@ -114,7 +118,25 @@ class SqlTest {
       .select(Student::class)
       .whereEnable()
       .page("id")
-    println(page.count().trim())
+    assertEquals(EXPECT_SELECT9, page.count().trim())
+  }
+
+  @Test
+  internal fun `Test select and not blank`() {
+    val sql = Sql("sys_user")
+      .select { "id" }
+      .whereEnable()
+      .andNotBlank("name" to "", "spell" to "test")
+      .get()
+    assertEquals(EXPECT_SELECT10, sql.trim())
+  }
+
+  @Test
+  internal fun `Test Insert into data`() {
+    val insert = Sql("sys_user")
+      .insert("name", "spell", "sort", "create_time")
+      .get()
+    assertEquals(EXPECT_INSERT, insert)
   }
 }
 

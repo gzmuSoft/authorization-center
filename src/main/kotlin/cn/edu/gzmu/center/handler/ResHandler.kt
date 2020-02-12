@@ -26,6 +26,8 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
       .handler { handlerPatch(it, Res.ADDRESS_RES_UPDATE) }
     router.delete("/res/:id")
       .handler { handlerDelete(it, Res.ADDRESS_RES_DELETE) }
+    router.post("/res")
+      .handler { handlerCreate(it, Res.ADDRESS_RES_CREATE) }
   }
 
   /**

@@ -31,11 +31,25 @@ abstract class BaseHandler(private val eventBus: EventBus) {
   }
 
   fun handlerCreate(context: RoutingContext, address: String) {
-    handlerJson(context, address, HttpResponseStatus.CREATED)
+    val user = context.bodyAsJson
+    user.put("userId", context.get<Long>("id"))
+    user.put("username", context.get<String>("username"))
+    user.put("createUser", context.get<String>("username"))
+    eventBus.request<Unit>(address, user) {
+      handleNoResult(context, HttpResponseStatus.CREATED, it)
+    }
   }
 
   fun handlerPatch(context: RoutingContext, address: String) {
-    handlerJson(context, address, HttpResponseStatus.NO_CONTENT)
+    val user = context.bodyAsJson
+    user.put("userId", context.get<Long>("id"))
+    user.put("username", context.get<String>("username"))
+    user.put("modifyUser", context.get<String>("username"))
+    user.put("student", context.user().principal().getBoolean("is_student"))
+    user.put("teacher", context.user().principal().getBoolean("is_teacher"))
+    eventBus.request<Unit>(address, user) {
+      handleNoResult(context, HttpResponseStatus.NO_CONTENT, it)
+    }
   }
 
   fun handlerPage(
@@ -61,18 +75,6 @@ abstract class BaseHandler(private val eventBus: EventBus) {
   ) {
     eventBus.request<R>(address, params(context)) {
       handleResult<R>(context, it)
-    }
-  }
-
-  private fun handlerJson(context: RoutingContext, address: String, status: HttpResponseStatus) {
-    val user = context.bodyAsJson
-    user.put("userId", context.get<Long>("id"))
-    user.put("username", context.get<String>("username"))
-    user.put("modifyUser", context.get<String>("username"))
-    user.put("student", context.user().principal().getBoolean("is_student"))
-    user.put("teacher", context.user().principal().getBoolean("is_teacher"))
-    eventBus.request<Unit>(address, user) {
-      handleNoResult(context, status, it)
     }
   }
 

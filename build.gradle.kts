@@ -13,7 +13,12 @@ version = "1.0.0-SNAPSHOT"
 
 repositories {
   maven("http://maven.aliyun.com/nexus/content/groups/public/")
-  maven("https://oss.sonatype.org/content/repositories/snapshots")
+  maven {
+    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+    mavenContent {
+      snapshotsOnly()
+    }
+  }
   mavenCentral()
   jcenter()
 }

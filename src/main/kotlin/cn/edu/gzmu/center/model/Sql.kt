@@ -54,6 +54,16 @@ class Sql(private val table: String) {
   }
 
   /**
+   * Insert into
+   */
+  fun insert(vararg fields: String): Sql {
+    val fieldNames = fields.joinToString(",")
+    val values = fields.joinToString(",") { "$${index++}" }
+    sql = "INSERT INTO $table ($fieldNames) VALUES (${values})"
+    return this
+  }
+
+  /**
    * Set every field when update.
    */
   fun set(key: () -> String): Sql {
@@ -123,6 +133,26 @@ class Sql(private val table: String) {
    */
   fun and(vararg fields: Pair<String, Any?>): Sql {
     fields.forEach { and { it } }
+    return this
+  }
+
+  /**
+   * more condition, not blank and not null
+   */
+  fun andNotBlank(vararg fields: Pair<String, Any?>): Sql {
+    fields.filter { it.second?.toString()?.isNotBlank() == true }
+      .forEach { and { it } }
+    return this
+  }
+
+  /**
+   * more condition, not blank and not null
+   */
+  fun andNotBlank(filed: () -> Pair<String, Any?>): Sql {
+    val pair = filed()
+    if (pair.second?.toString()?.isNotBlank() == true) {
+      and { pair }
+    }
     return this
   }
 

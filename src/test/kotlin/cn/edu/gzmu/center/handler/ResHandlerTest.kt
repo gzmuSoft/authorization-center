@@ -67,4 +67,19 @@ class ResHandlerTest : OauthHelper() {
         }
       }
   }
+
+  @Test
+  internal fun `Insert into res when passed`(testContext: VertxTestContext) {
+    client.post("/res")
+      .sendJsonObject(jsonObjectOf(
+        "name" to "test"
+      )) {
+        resultCheck(testContext, it)
+        val response = it.result()
+        testContext.verify {
+          assertEquals(created, response.statusCode())
+          testContext.completeNow()
+        }
+      }
+  }
 }

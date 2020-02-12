@@ -54,6 +54,13 @@ internal fun Tuple.addOptional(value: Any?): Tuple =
   else this.addValue(value)
 
 /**
+ * Add optional param.
+ */
+internal fun Tuple.addOrNull(value: Any?): Tuple =
+  if (value === null || value.toString().trim().isBlank()) this.addValue(null)
+  else this.addValue(value)
+
+/**
  * Get Singleton kotnlin json.
  */
 object KotlinJson {
