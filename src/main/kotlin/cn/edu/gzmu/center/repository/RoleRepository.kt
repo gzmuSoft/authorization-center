@@ -47,8 +47,7 @@ class RoleRepositoryImpl(private val pool: PgPool) : BaseRepository(), RoleRepos
     val parentId = message.body()
     val sql = Sql("sys_role")
       .select(SysRole::class)
-      .whereEnable()
-      .and { "parentId" to parentId }
+      .where { "parentId" }
       .orderBy { "sort" }
       .get()
     pool.preparedQuery(sql, Tuple.of(parentId)) {

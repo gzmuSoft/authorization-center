@@ -3,6 +3,8 @@ package cn.edu.gzmu.center.repository
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.AuthCenterRes
+import cn.edu.gzmu.center.model.extension.addOptional
+import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
@@ -28,6 +30,15 @@ interface ResRepository {
    */
   suspend fun res(message: Message<JsonObject>)
 
+  /**
+   * res update.
+   */
+  fun resUpdate(message: Message<JsonObject>)
+
+  /**
+   * res delete.
+   */
+  fun resDelete(message: Message<Long>)
 }
 
 class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(), ResRepository {
@@ -73,6 +84,36 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(), ResReposi
     } finally {
       connection?.close()
       log.debug("Close temporary database connection.")
+    }
+  }
+
+  override fun resUpdate(message: Message<JsonObject>) {
+    val body = message.body()
+    val res = body.mapAs(AuthCenterRes.serializer())
+    val sql = Sql("auth_center_res")
+      .update().set { "id" }.setIf(res::modifyTime).setIf(res::modifyUser)
+      .setIf(res::name).setIf(res::url).setIf(res::describe).setIf(res::method)
+      .setIf(res::sort).setIf(res::remark).whereEnable()
+      .and { "id" to res.id }.get()
+    val params = Tuple.of(res.id, res.modifyTime, res.modifyUser).addOptional(res.name)
+      .addOptional(res.url).addOptional(res.describe).addOptional(res.method)
+      .addOptional(res.sort).addOptional(res.remark).addOptional(res.id)
+    pool.preparedQuery(sql, params) {
+      messageException(message, it)
+      log.debug("Success update res: {}", res)
+      message.reply("success")
+    }
+  }
+
+  override fun resDelete(message: Message<Long>) {
+    val id = message.body()
+    val sql = Sql("auth_center_res")
+      .update().set { "is_enable" }
+      .whereEnable().and { "id" to id }.get()
+    pool.preparedQuery(sql, Tuple.of(false, id)) {
+      messageException(message, it)
+      log.debug("Success delete res: {}", id)
+      message.reply("success")
     }
   }
 

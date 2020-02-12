@@ -9,5 +9,7 @@ package cn.edu.gzmu.center.model.address
 class Res {
   companion object {
     const val ADDRESS_RES = "address_res"
+    const val ADDRESS_RES_UPDATE = "address_res_update"
+    const val ADDRESS_RES_DELETE = "address_res_delete"
   }
 }

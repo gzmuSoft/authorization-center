@@ -94,18 +94,25 @@ class RoleHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
   private fun roleRes(context: RoutingContext): Long = context.request().getParam("id").toLong()
 
   /**
-   * @api {PATCH} /role auth center res update
+   * @api {PATCH} /role sys role update
    * @apiVersion 1.0.0
    * @apiName RoleUpdate
    * @apiDescription Update role
    * @apiGroup Role
    * @apiUse Bearer
-   * @apiParam {Long}     id                 data id
-   * @apiParam {String}   name               data name
-   * @apiParam {String}   url                url
-   * @apiParam {String}   describe           describe
-   * @apiParam {String}   remark             remark
+   * @apiExample Example usage:
+   *      curl --location --request PATCH 'http://127.0.0.1:8889/role' \
+   *        --header 'Authorization: Bearer token'
+   *        --data-raw '{
+   *                      "id": 1,
+   *                      "name": "test"
+   *                    }'
+   * @apiParam {Long}     id                    data id
+   * @apiParam {String}   [name ]               data name
+   * @apiParam {String}   [des ]                describe
+   * @apiParam {String}   [iconCls ]            describe
+   * @apiParam {String}   [remark ]             remark
    * @apiSuccessExample {json} Success-response:
-   *      HTTP/1.1 204 OK
+   *      HTTP/1.1 204 No Content
    */
 }

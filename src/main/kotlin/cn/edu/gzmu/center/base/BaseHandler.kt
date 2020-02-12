@@ -14,13 +14,20 @@ import io.vertx.ext.web.RoutingContext
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/10 下午8:30
  */
-open class BaseHandler(private val eventBus: EventBus) {
+abstract class BaseHandler(private val eventBus: EventBus) {
   init {
     // In init, init all ordinary routing
   }
 
   open suspend fun route() {
     // In suspend function, init all Coroutine routing
+  }
+
+  fun handlerDelete(context: RoutingContext, address: String) {
+    val id = context.request().getParam("id").toLong()
+    eventBus.request<Unit>(address, id) {
+      handleNoResult(context, HttpResponseStatus.NO_CONTENT, it)
+    }
   }
 
   fun handlerCreate(context: RoutingContext, address: String) {

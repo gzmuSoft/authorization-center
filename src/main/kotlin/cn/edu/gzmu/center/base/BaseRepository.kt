@@ -10,7 +10,7 @@ import java.lang.Exception
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/10 下午8:40
  */
-open class BaseRepository {
+abstract class BaseRepository {
 
   @Throws(Exception::class)
   fun <T> messageException(message: Message<T>, ar: AsyncResult<*>) {

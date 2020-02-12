@@ -53,8 +53,10 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer<Long>(Role.ADDRESS_ROLE_PARENT, roleRepository::roleParent)
     eventBus.localConsumer<Long>(Role.ADDRESS_ROLE_RES, roleRepository::roleRes)
     eventBus.localConsumer<JsonObject>(Role.ADDRESS_ROLE_UPDATE, roleRepository::roleUpdate)
-    val resRepositoryI: ResRepository = ResRepositoryIImpl(pool)
-    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES) { launch { resRepositoryI.res(it) } }
+    val resRepository: ResRepository = ResRepositoryIImpl(pool)
+    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES) { launch { resRepository.res(it) } }
+    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES_UPDATE, resRepository::resUpdate)
+    eventBus.localConsumer<Long>(Res.ADDRESS_RES_DELETE, resRepository::resDelete)
   }
 
   private fun baseRepository() {
