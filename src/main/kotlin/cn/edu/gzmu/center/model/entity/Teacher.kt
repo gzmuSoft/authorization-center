@@ -31,10 +31,10 @@ data class Teacher (
   @Serializable(with = LocalDateSerializer::class)
   val workDate: LocalDate? = null,
   val nation: Long? = null,
-  val degree: String? = null,
+  val degree: Long? = null,
   val academic: Long? = null,
   val major: String? = null,
-  val profTitle: String? = null,
+  val profTitle: Long? = null,
   val graduateInstitution: String? = null,
   val majorResearch: String? = null,
   val resume: String? = null,

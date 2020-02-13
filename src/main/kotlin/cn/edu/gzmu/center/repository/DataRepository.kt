@@ -10,10 +10,15 @@ import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.json.jsonObjectOf
+import io.vertx.kotlin.sqlclient.getConnectionAwait
+import io.vertx.kotlin.sqlclient.preparedQueryAwait
 import io.vertx.pgclient.PgPool
+import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.lang.Exception
 
 /**
  * .
@@ -23,78 +28,132 @@ import org.slf4j.LoggerFactory
  */
 interface DataRepository {
   /**
-   * College by type
+   * Data by type
    */
-  fun collegeType(message: Message<Long>)
+  fun dataType(message: Message<Long>)
 
   /**
-   * College by parent
+   * Data by parent
    */
-  fun collegeParent(message: Message<Long>)
+  fun dataParent(message: Message<Long>)
 
   /**
-   * College update
+   * Data delete by id
    */
-  fun collegeUpdate(message: Message<JsonObject>)
+  fun dataDelete(message: Message<Long>)
 
   /**
-   * College create
+   * Data update
    */
-  fun collegeCreate(message: Message<JsonObject>)
+  fun dataUpdate(message: Message<JsonObject>)
+
+  /**
+   * Data create
+   */
+  fun dataCreate(message: Message<JsonObject>)
+
+  /**
+   * Data page
+   */
+  suspend fun dataPage(message: Message<JsonObject>)
 }
 
 class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepository {
   private val log: Logger = LoggerFactory.getLogger(DataRepositoryImpl::class.java.name)
   private val table = "sys_data"
-  override fun collegeType(message: Message<Long>) {
-    collegeByOneField(message, "type")
+  override fun dataType(message: Message<Long>) {
+    dataByOneField(message, "type")
   }
 
-  override fun collegeParent(message: Message<Long>) {
-    collegeByOneField(message, "parent_id")
+  override fun dataParent(message: Message<Long>) {
+    dataByOneField(message, "parent_id")
   }
 
-  override fun collegeUpdate(message: Message<JsonObject>) {
-    val body = message.body()
-    val college = body.mapAs(SysData.serializer())
+  override fun dataDelete(message: Message<Long>) {
+    val id = message.body()
     val sql = Sql(table)
-      .update().set { "modify_user" }.setIf(college::modifyTime)
-      .setIf(college::name).setIf(college::brief).setIf(college::remark)
-      .setIf(college::isEnable)
+      .update()
+      .set { "is_enable" }
+      .whereEnable()
+      .and { "id" to id }.get()
+    pool.preparedQuery(sql, Tuple.of(false, id)) {
+      messageException(message, it)
+      log.debug("Success delete data: {}", id)
+      message.reply("success")
+    }
+  }
+
+  override fun dataUpdate(message: Message<JsonObject>) {
+    val body = message.body()
+    val data = body.mapAs(SysData.serializer())
+    val sql = Sql(table)
+      .update().set { "modify_user" }.setIf(data::modifyTime)
+      .setIf(data::name).setIf(data::brief).setIf(data::remark)
+      .setIf(data::isEnable)
       .where("id")
       .get()
     pool.preparedQuery(
-      sql, Tuple.of(college.modifyUser, college.modifyTime)
-        .addOptional(college.name).addOptional(college.brief).addOptional(college.remark)
-        .addOptional(college.isEnable).addOptional(college.id)
+      sql, Tuple.of(data.modifyUser, data.modifyTime)
+        .addOptional(data.name).addOptional(data.brief).addOptional(data.remark)
+        .addOptional(data.isEnable).addOptional(data.id)
     ) {
       messageException(message, it)
-      log.debug("Success update college: {}", college)
+      log.debug("Success update data: {}", data)
       message.reply("success")
     }
   }
 
-  override fun collegeCreate(message: Message<JsonObject>) {
+  override fun dataCreate(message: Message<JsonObject>) {
     val body = message.body()
-    val college = body.mapAs(SysData.serializer())
+    val data = body.mapAs(SysData.serializer())
     val sql = Sql(table)
       .insert(
-        college::createUser, college::createTime, college::name, college::brief,
-        college::parentId, college::type, college::sort, college::remark
+        data::createUser, data::createTime, data::name, data::brief,
+        data::parentId, data::type, data::sort, data::remark
       )
       .get()
     pool.preparedQuery(
-      sql, Tuple.of(college.createUser, college.createTime).addOrNull(college.name)
-        .addOrNull(college.brief).addOrNull(college.parentId).addOrNull(college.type)
-        .addOrNull(college.sort).addOrNull(college.remark)
+      sql, Tuple.of(data.createUser, data.createTime).addOrNull(data.name)
+        .addOrNull(data.brief).addOrNull(data.parentId).addOrNull(data.type)
+        .addOrNull(data.sort).addOrNull(data.remark)
     ) {
       messageException(message, it)
-      log.debug("Success create college: {}", college)
+      log.debug("Success create data: {}", data)
       message.reply("success")
     }
   }
 
-  private fun collegeByOneField(message: Message<Long>, field: String) {
+  override suspend fun dataPage(message: Message<JsonObject>) {
+    val body = message.body()
+    val type = body.getLong("type")
+    val name = body.getString("name")
+    val baseSql = Sql(table)
+      .select(SysData::class)
+      .whereEnable()
+      .and { "type" to type }
+      .like { "name" }
+    var connection: SqlConnection? = null
+    try {
+      connection = pool.getConnectionAwait()
+      val count = connection.preparedQueryAwait(baseSql.count(), Tuple.of(type, "%$name"))
+        .first().getLong("count")
+      val sql = baseSql.page(body.getString("sort"))
+        .get()
+      val rowSet =
+        connection.preparedQueryAwait(sql, Tuple.of(type, "%$name%", body.getLong("size"), body.getLong("offset")))
+      val content = rowSet.map { it.toJsonObject<SysData>() }
+      log.debug("Success get page data: {}", count)
+      message.reply(jsonObjectOf("content" to content, "itemsLength" to count))
+    } catch (e: Exception) {
+      message.fail(500, e.cause?.message)
+      throw e
+    } finally {
+      connection?.close()
+      log.debug("Close temporary database connection.")
+    }
+  }
+
+  private fun dataByOneField(message: Message<Long>, field: String) {
     val id = message.body()
     val sql = Sql(table)
       .select(SysData::class)
@@ -102,9 +161,9 @@ class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepos
       .get()
     pool.preparedQuery(sql, Tuple.of(id)) {
       messageException(message, it)
-      val college = it.result().map { row -> row.toJsonObject<SysData>() }
-      log.debug("Success get college by $field: {}", college)
-      message.reply(JsonArray(college))
+      val data = it.result().map { row -> row.toJsonObject<SysData>() }
+      log.debug("Success get data by $field: {}", data)
+      message.reply(JsonArray(data))
     }
   }
 

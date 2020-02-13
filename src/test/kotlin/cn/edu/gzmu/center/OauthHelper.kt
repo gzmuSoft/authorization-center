@@ -6,7 +6,9 @@ import cn.edu.gzmu.center.verticle.WebVerticle
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.*
+import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.web.client.HttpResponse
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.client.WebClientOptions
 import io.vertx.ext.web.client.WebClientSession
@@ -16,6 +18,7 @@ import io.vertx.kotlin.ext.web.client.sendFormAwait
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.*
@@ -92,6 +95,19 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
     if (ar.succeeded()) return
     testContext.failNow(ar.cause())
     throw ar.cause()
+  }
+
+  protected fun pageCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>) {
+    resultCheck(testContext, ar)
+    val response = ar.result()
+    testContext.verify {
+      Assertions.assertEquals(ok, response.statusCode())
+      val body = response.bodyAsJsonObject()
+      Assertions.assertTrue(body.containsKey("content"))
+      Assertions.assertTrue(body.containsKey("itemsLength"))
+      Assertions.assertEquals(5, body.getJsonArray("content").size())
+      testContext.completeNow()
+    }
   }
 }
 

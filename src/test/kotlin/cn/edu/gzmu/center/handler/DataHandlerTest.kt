@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
  */
 class DataHandlerTest : OauthHelper() {
   @Test
-  internal fun `Test get college by type id`(testContext: VertxTestContext) {
+  internal fun `Get college by type id when passed`(testContext: VertxTestContext) {
     client.get("/data/type/0")
       .send {
         resultCheck(testContext, it)
@@ -27,7 +27,7 @@ class DataHandlerTest : OauthHelper() {
   }
 
   @Test
-  internal fun `Test get college by parent id`(testContext: VertxTestContext) {
+  internal fun `Get college by parent id when passed`(testContext: VertxTestContext) {
     client.get("/data/parent/1")
       .send {
         resultCheck(testContext, it)
@@ -40,7 +40,7 @@ class DataHandlerTest : OauthHelper() {
   }
 
   @Test
-  internal fun `Test update college`(testContext: VertxTestContext) {
+  internal fun `Update college by id when passed`(testContext: VertxTestContext) {
     client.patch("/data")
       .sendJsonObject(jsonObjectOf(
         "id" to 10,
@@ -57,7 +57,7 @@ class DataHandlerTest : OauthHelper() {
   }
 
   @Test
-  internal fun `Test create college`(testContext: VertxTestContext) {
+  internal fun `Create college when passed`(testContext: VertxTestContext) {
     client.post("/data")
       .sendJsonObject(jsonObjectOf(
         "name" to "test",
@@ -75,4 +75,29 @@ class DataHandlerTest : OauthHelper() {
       }
   }
 
+  @Test
+  internal fun `Get page when passed`(testContext: VertxTestContext) {
+    client.get("/data")
+      .addQueryParam("sort", "id")
+      .addQueryParam("page", "1")
+      .addQueryParam("size", "5")
+      .addQueryParam("name", "")
+      .addQueryParam("type", "4")
+      .send {
+        pageCheck(testContext, it)
+      }
+  }
+
+  @Test
+  internal fun `Delete data when passed`(testContext: VertxTestContext) {
+    client.delete("/data/10")
+      .send {
+        resultCheck(testContext, it)
+        val response = it.result()
+        testContext.verify {
+          assertEquals(noContent, response.statusCode())
+          testContext.completeNow()
+        }
+      }
+  }
 }

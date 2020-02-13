@@ -12,5 +12,7 @@ class Data {
     const val ADDRESS_DATA_PARENT = "address_data_parent"
     const val ADDRESS_DATA_UPDATE = "address_data_update"
     const val ADDRESS_DATA_CREATE = "address_data_create"
+    const val ADDRESS_DATA_PAGE = "address_data_page"
+    const val ADDRESS_DATA_DELETE = "address_data_delete"
   }
 }
