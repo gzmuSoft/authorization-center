@@ -59,7 +59,7 @@ class WebVerticle : CoroutineVerticle() {
         }
       }
     vertx.exceptionHandler {
-      log.error("Get a exception")
+      it.printStackTrace()
       throw it
     }
   }
@@ -69,6 +69,7 @@ class WebVerticle : CoroutineVerticle() {
     EveryHandler(router, eventBus)
     RoleHandler(router, eventBus)
     ResHandler(router, eventBus)
+    CollegeHandler(router, eventBus)
   }
 
   /**

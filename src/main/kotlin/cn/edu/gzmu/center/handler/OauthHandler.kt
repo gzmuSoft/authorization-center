@@ -73,11 +73,14 @@ class OauthHandler(
         "access_token" to authorization.substring(7)
       )
     ) {
-      if (it.failed()) context.fail(UnauthorizedException(it.cause().localizedMessage))
-      log.debug("Login user is: {}", it.result().principal().getString("sub"))
-      context.setUser(it.result())
-      context.put("username", it.result().principal().getString("sub"))
-      context.next()
+      if (it.failed()) {
+        context.fail(UnauthorizedException(it.cause().localizedMessage))
+      } else {
+        log.debug("Login user is: {}", it.result().principal().getString("sub"))
+        context.setUser(it.result())
+        context.put("username", it.result().principal().getString("sub"))
+        context.next()
+      }
     }
   }
 

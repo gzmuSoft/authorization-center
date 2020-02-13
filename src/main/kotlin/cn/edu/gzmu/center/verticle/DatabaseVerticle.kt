@@ -38,14 +38,22 @@ class DatabaseVerticle : CoroutineVerticle() {
       meRepository()
       baseRepository()
       systemRepository()
+      dataRepository()
       log.info("Success start database verticle......")
       vertx.exceptionHandler {
-        log.error("Get a exception")
-        throw it
+        it.printStackTrace()
       }
     } catch (e: Exception) {
       log.error("Failed start database verticle!", e.cause)
     }
+  }
+
+  private fun dataRepository() {
+    val collegeRepository: CollegeRepository = CollegeRepositoryImpl(pool)
+    eventBus.localConsumer<Long>(College.ADDRESS_COLLEGE_TYPE, collegeRepository::collegeType)
+    eventBus.localConsumer<Long>(College.ADDRESS_COLLEGE_PARENT, collegeRepository::collegeParent)
+    eventBus.localConsumer<JsonObject>(College.ADDRESS_COLLEGE_UPDATE, collegeRepository::collegeUpdate)
+    eventBus.localConsumer<JsonObject>(College.ADDRESS_COLLEGE_CREATE, collegeRepository::collegeCreate)
   }
 
   private fun systemRepository() {

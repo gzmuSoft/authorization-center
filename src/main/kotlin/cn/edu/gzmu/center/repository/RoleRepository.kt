@@ -94,8 +94,7 @@ class RoleRepositoryImpl(private val pool: PgPool) : BaseRepository(), RoleRepos
       .update().set { "id" }.setIf(role::name)
       .setIf(role::modifyTime).setIf(role::modifyUser).setIf(role::des)
       .setIf(role::iconCls).setIf(role::sort).setIf(role::remark).setIf(role::isEnable)
-      .whereEnable()
-      .and { "id" to role.id }
+      .where("id")
       .get()
     val tuple = Tuple.of(role.id).addOptional(role.name)
       .addOptional(role.modifyTime).addOptional(role.modifyUser).addOptional(role.des)

@@ -63,6 +63,14 @@ class Sql(private val table: String) {
     return this
   }
 
+  fun insert(vararg properties: KProperty0<*>): Sql {
+    val fields = properties.map { converter.convert(it.name) }
+    val fieldNames = fields.joinToString(",")
+    val values = fields.joinToString(",") { "$${index++}" }
+    sql = "INSERT INTO $table ($fieldNames) VALUES (${values})"
+    return this
+  }
+
   /**
    * Set every field when update.
    */
