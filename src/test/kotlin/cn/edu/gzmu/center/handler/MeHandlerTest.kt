@@ -39,7 +39,7 @@ internal class MeHandlerTest : OauthHelper() {
   internal fun `Get user menu when passed`(testContext: VertxTestContext) {
     client.get("/me/menu")
       .send {
-        if (it.failed()) testContext.failNow(it.cause())
+        resultCheck(testContext, it)
         val response = it.result()
         testContext.verify {
           assertEquals(ok, response.statusCode())
@@ -54,7 +54,7 @@ internal class MeHandlerTest : OauthHelper() {
   internal fun `Get student info when passed`(testContext: VertxTestContext) {
     client.get("/me/info")
       .send {
-        if (it.failed()) testContext.failNow(it.cause())
+        resultCheck(testContext, it)
         val response = it.result()
         testContext.verify {
           assertEquals(ok, response.statusCode())
@@ -72,7 +72,7 @@ internal class MeHandlerTest : OauthHelper() {
       oauthToken(vertx)
       client.get("/me/info")
         .send {
-          if (it.failed()) testContext.failNow(it.cause())
+          resultCheck(testContext, it)
           val response = it.result()
           testContext.verify {
             assertEquals(ok, response.statusCode())
@@ -94,7 +94,7 @@ internal class MeHandlerTest : OauthHelper() {
           "phone" to "13765308262"
         )
       ) {
-        if (it.failed()) testContext.failNow(it.cause())
+        resultCheck(testContext, it)
         val response = it.result()
         testContext.verify {
           assertEquals(noContent, response.statusCode())
@@ -112,7 +112,7 @@ internal class MeHandlerTest : OauthHelper() {
           "remark" to "test update ${(0..10).random()})"
         )
       ) {
-        if (it.failed()) testContext.failNow(it.cause())
+        resultCheck(testContext, it)
         val response = it.result()
         testContext.verify {
           assertEquals(noContent, response.statusCode())
@@ -133,7 +133,7 @@ internal class MeHandlerTest : OauthHelper() {
             "remark" to "teacher update ${(0..10).random()})"
           )
         ) {
-          if (it.failed()) testContext.failNow(it.cause())
+          resultCheck(testContext, it)
           val response = it.result()
           testContext.verify {
             assertEquals(noContent, response.statusCode())

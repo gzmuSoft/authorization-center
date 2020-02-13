@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/12 下午9:28
  */
-interface CollegeRepository {
+interface DataRepository {
   /**
    * College by type
    */
@@ -43,8 +43,8 @@ interface CollegeRepository {
   fun collegeCreate(message: Message<JsonObject>)
 }
 
-class CollegeRepositoryImpl(private val pool: PgPool) : BaseRepository(), CollegeRepository {
-  private val log: Logger = LoggerFactory.getLogger(CollegeRepositoryImpl::class.java.name)
+class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepository {
+  private val log: Logger = LoggerFactory.getLogger(DataRepositoryImpl::class.java.name)
   private val table = "sys_data"
   override fun collegeType(message: Message<Long>) {
     collegeByOneField(message, "type")

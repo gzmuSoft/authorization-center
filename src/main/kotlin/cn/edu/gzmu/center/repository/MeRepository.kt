@@ -91,6 +91,7 @@ class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(),
       WHERE acr.name IS NOT NULL AND acr.url IS NOT NULL
          AND acr.method IS NOT NULL AND acr.is_enable = true
          AND ( sr.name = any ($1) OR sr.name = 'ROLE_PUBLIC')
+      ORDER BY acr.sort
     """.trimIndent()
     const val STUDENT_BY_USER = "SELECT * FROM student WHERE user_id = $1 AND is_enable = true"
     const val TEACHER_BY_USER = "SELECT * FROM teacher WHERE user_id = $1 AND is_enable = true"

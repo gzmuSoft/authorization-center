@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/12 下午9:48
  */
-class CollegeHandlerTest : OauthHelper() {
+class DataHandlerTest : OauthHelper() {
   @Test
   internal fun `Test get college by type id`(testContext: VertxTestContext) {
-    client.get("/college/type/0")
+    client.get("/data/type/0")
       .send {
         resultCheck(testContext, it)
         val response = it.result()
@@ -28,7 +28,7 @@ class CollegeHandlerTest : OauthHelper() {
 
   @Test
   internal fun `Test get college by parent id`(testContext: VertxTestContext) {
-    client.get("/college/parent/1")
+    client.get("/data/parent/1")
       .send {
         resultCheck(testContext, it)
         val response = it.result()
@@ -41,7 +41,7 @@ class CollegeHandlerTest : OauthHelper() {
 
   @Test
   internal fun `Test update college`(testContext: VertxTestContext) {
-    client.patch("/college")
+    client.patch("/data")
       .sendJsonObject(jsonObjectOf(
         "id" to 10,
         "remark" to "test",
@@ -58,7 +58,7 @@ class CollegeHandlerTest : OauthHelper() {
 
   @Test
   internal fun `Test create college`(testContext: VertxTestContext) {
-    client.post("/college")
+    client.post("/data")
       .sendJsonObject(jsonObjectOf(
         "name" to "test",
         "parentId" to 0,

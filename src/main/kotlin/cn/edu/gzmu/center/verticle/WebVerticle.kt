@@ -69,7 +69,7 @@ class WebVerticle : CoroutineVerticle() {
     EveryHandler(router, eventBus)
     RoleHandler(router, eventBus)
     ResHandler(router, eventBus)
-    CollegeHandler(router, eventBus)
+    DataHandler(router, eventBus)
   }
 
   /**

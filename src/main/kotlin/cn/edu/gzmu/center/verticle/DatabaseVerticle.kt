@@ -49,11 +49,11 @@ class DatabaseVerticle : CoroutineVerticle() {
   }
 
   private fun dataRepository() {
-    val collegeRepository: CollegeRepository = CollegeRepositoryImpl(pool)
-    eventBus.localConsumer<Long>(College.ADDRESS_COLLEGE_TYPE, collegeRepository::collegeType)
-    eventBus.localConsumer<Long>(College.ADDRESS_COLLEGE_PARENT, collegeRepository::collegeParent)
-    eventBus.localConsumer<JsonObject>(College.ADDRESS_COLLEGE_UPDATE, collegeRepository::collegeUpdate)
-    eventBus.localConsumer<JsonObject>(College.ADDRESS_COLLEGE_CREATE, collegeRepository::collegeCreate)
+    val dataRepository: DataRepository = DataRepositoryImpl(pool)
+    eventBus.localConsumer<Long>(Data.ADDRESS_DATA_TYPE, dataRepository::collegeType)
+    eventBus.localConsumer<Long>(Data.ADDRESS_DATA_PARENT, dataRepository::collegeParent)
+    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_UPDATE, dataRepository::collegeUpdate)
+    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_CREATE, dataRepository::collegeCreate)
   }
 
   private fun systemRepository() {
