@@ -2,7 +2,7 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.base.BaseHandler
 import cn.edu.gzmu.center.model.address.Address
-import cn.edu.gzmu.center.model.address.Data
+import cn.edu.gzmu.center.model.entity.SysData
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -19,20 +19,20 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 class DataHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
   init {
     router.get("/data/type/:id")
-      .handler { handlerGet<Long, JsonArray>(it, Data.  ADDRESS_DATA_TYPE, this::paramId) }
+      .handler { handlerGet<Long, JsonArray>(it, SysData.ADDRESS_DATA_TYPE, this::paramId) }
     router.get("/data/parent/:id")
-      .handler { handlerGet<Long, JsonArray>(it, Data.ADDRESS_DATA_PARENT, this::paramId) }
+      .handler { handlerGet<Long, JsonArray>(it, SysData.ADDRESS_DATA_PARENT, this::paramId) }
     router.patch("/data")
       .handler { Address.parameterHandler.requireJson(it, "id", "isEnable") }
-      .handler { handlerPatch(it, Data.ADDRESS_DATA_UPDATE) }
+      .handler { handlerPatch(it, SysData.ADDRESS_DATA_UPDATE) }
     router.post("/data")
       .handler { Address.parameterHandler.requireJson(it, "name", "type", "parentId") }
-      .handler { handlerCreate(it, Data.ADDRESS_DATA_CREATE) }
+      .handler { handlerCreate(it, SysData.ADDRESS_DATA_CREATE) }
     router.delete("/data/:id")
-      .handler { handlerDelete(it, Data.ADDRESS_DATA_DELETE) }
+      .handler { handlerDelete(it, SysData.ADDRESS_DATA_DELETE) }
     router.get("/data")
       .handler { Address.parameterHandler.requireParam(it, "type") }
-      .handler { handlerPage(it, Data.ADDRESS_DATA_PAGE, this::dataPage) }
+      .handler { handlerPage(it, SysData.ADDRESS_DATA_PAGE, this::dataPage) }
   }
 
   /**

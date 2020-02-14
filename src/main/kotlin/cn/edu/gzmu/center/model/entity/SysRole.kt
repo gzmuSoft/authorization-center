@@ -11,7 +11,7 @@ import java.time.LocalDateTime
  * @date 2020/2/11 下午12:38
  */
 @Serializable
-data class SysRole (
+data class SysRole(
   val id: Long? = null,
   val name: String? = null,
   val spell: String? = null,
@@ -27,4 +27,10 @@ data class SysRole (
   val modifyTime: LocalDateTime = LocalDateTime.now(),
   val remark: String? = null,
   val isEnable: Boolean = false
-)
+) {
+  companion object {
+    const val ADDRESS_ROLE_PARENT = "address_role_parent"
+    const val ADDRESS_ROLE_RES = "address_role_res"
+    const val ADDRESS_ROLE_UPDATE = "address_role_update"
+  }
+}

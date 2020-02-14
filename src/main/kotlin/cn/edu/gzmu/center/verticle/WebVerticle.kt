@@ -71,6 +71,7 @@ class WebVerticle : CoroutineVerticle() {
     ResHandler(router, eventBus)
     DataHandler(router, eventBus)
     SemesterHandler(router, eventBus)
+    StudentHandler(router, eventBus)
   }
 
   /**

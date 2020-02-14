@@ -29,4 +29,11 @@ data class AuthCenterRes(
   val modifyTime: LocalDateTime = LocalDateTime.now(),
   val remark: String? = null,
   val isEnable: Boolean = false
-)
+){
+  companion object {
+    const val ADDRESS_RES = "address_res"
+    const val ADDRESS_RES_CREATE = "address_res_create"
+    const val ADDRESS_RES_UPDATE = "address_res_update"
+    const val ADDRESS_RES_DELETE = "address_res_delete"
+  }
+}

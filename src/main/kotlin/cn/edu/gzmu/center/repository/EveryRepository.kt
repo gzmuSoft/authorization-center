@@ -55,11 +55,11 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(),
   private val log: Logger = LoggerFactory.getLogger(EveryRepositoryImpl::class.java.name)
 
   companion object {
-    const val DATA_TYPE =
+    private const val DATA_TYPE =
       "SELECT d.id, d.name, d.brief FROM sys_data d WHERE d.type = $1 AND is_enable = true ORDER BY sort"
-    const val DATA_TYPES =
+    private const val DATA_TYPES =
       "SELECT d.id, d.name, d.brief, d.type, d.sort FROM sys_data d WHERE d.type = any ($1) AND is_enable = true"
-    const val USER_COUNT = "SELECT count(id) FROM sys_user WHERE is_enable = true"
+    private const val USER_COUNT = "SELECT count(id) FROM sys_user WHERE is_enable = true"
     val DATA_NAME = """
       WITH RECURSIVE cte as (
           SELECT id, name, parent_id, type

@@ -34,6 +34,14 @@ import java.util.*
  * @apiDefine Bearer
  * @apiHeader {String} Authorization Bearer token.
  *
+ * When login success, this route context will save these data:
+ * username - Login user's name
+ * resource - User can access resources
+ * id - User id from sys_user
+ * email - User email
+ * phone - User phone
+ * is_student - if true, the user's role has student
+ * is_teacher - if true, the user's role has teacher
  *
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/1/23 上午11:44
@@ -357,6 +365,8 @@ class OauthHandler(
         log.debug("Forbidden!")
       } else {
         log.debug("Current user can access resource.")
+        // Save this user can access resources.
+        context.put("resource", resources.getJsonArray(RESULT))
         context.next()
       }
     }

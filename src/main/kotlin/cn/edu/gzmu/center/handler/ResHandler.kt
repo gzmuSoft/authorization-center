@@ -2,7 +2,7 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.base.BaseHandler
 import cn.edu.gzmu.center.model.address.Address
-import cn.edu.gzmu.center.model.address.Res
+import cn.edu.gzmu.center.model.entity.AuthCenterRes
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
@@ -20,14 +20,14 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
     router.get("/res")
       // Must have these params.
       .handler { Address.parameterHandler.requireParam(it, "page", "size", "describe", "type") }
-      .handler { handlerPage(it, Res.ADDRESS_RES, this::res) }
+      .handler { handlerPage(it, AuthCenterRes.ADDRESS_RES, this::res) }
     router.patch("/res")
       .handler { Address.parameterHandler.requireJson(it, "id") }
-      .handler { handlerPatch(it, Res.ADDRESS_RES_UPDATE) }
+      .handler { handlerPatch(it, AuthCenterRes.ADDRESS_RES_UPDATE) }
     router.delete("/res/:id")
-      .handler { handlerDelete(it, Res.ADDRESS_RES_DELETE) }
+      .handler { handlerDelete(it, AuthCenterRes.ADDRESS_RES_DELETE) }
     router.post("/res")
-      .handler { handlerCreate(it, Res.ADDRESS_RES_CREATE) }
+      .handler { handlerCreate(it, AuthCenterRes.ADDRESS_RES_CREATE) }
   }
 
   /**

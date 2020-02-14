@@ -1,8 +1,9 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.model.address.*
+import cn.edu.gzmu.center.model.address.Every
 import cn.edu.gzmu.center.model.address.Me
 import cn.edu.gzmu.center.model.address.Oauth
+import cn.edu.gzmu.center.model.entity.*
 import cn.edu.gzmu.center.repository.*
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
@@ -39,6 +40,7 @@ class DatabaseVerticle : CoroutineVerticle() {
       baseRepository()
       systemRepository()
       dataRepository()
+      userRepository()
       log.info("Success start database verticle......")
       vertx.exceptionHandler {
         it.printStackTrace()
@@ -48,14 +50,19 @@ class DatabaseVerticle : CoroutineVerticle() {
     }
   }
 
+  private fun userRepository() {
+    val studentRepository: StudentRepository = StudentRepositoryImpl(pool)
+    eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_ME) { launch { studentRepository.studentMe(it) }}
+  }
+
   private fun dataRepository() {
     val dataRepository: DataRepository = DataRepositoryImpl(pool)
-    eventBus.localConsumer<Long>(Data.ADDRESS_DATA_TYPE, dataRepository::dataType)
-    eventBus.localConsumer<Long>(Data.ADDRESS_DATA_PARENT, dataRepository::dataParent)
-    eventBus.localConsumer<Long>(Data.ADDRESS_DATA_DELETE, dataRepository::dataDelete)
-    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_UPDATE, dataRepository::dataUpdate)
-    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_CREATE, dataRepository::dataCreate)
-    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_PAGE) { launch { dataRepository.dataPage(it) } }
+    eventBus.localConsumer<Long>(SysData.ADDRESS_DATA_TYPE, dataRepository::dataType)
+    eventBus.localConsumer<Long>(SysData.ADDRESS_DATA_PARENT, dataRepository::dataParent)
+    eventBus.localConsumer<Long>(SysData.ADDRESS_DATA_DELETE, dataRepository::dataDelete)
+    eventBus.localConsumer<JsonObject>(SysData.ADDRESS_DATA_UPDATE, dataRepository::dataUpdate)
+    eventBus.localConsumer<JsonObject>(SysData.ADDRESS_DATA_CREATE, dataRepository::dataCreate)
+    eventBus.localConsumer<JsonObject>(SysData.ADDRESS_DATA_PAGE) { launch { dataRepository.dataPage(it) } }
     val semesterRepository: SemesterRepository = SemesterRepositoryImpl(pool)
     eventBus.localConsumer<JsonObject>(Semester.ADDRESS_SEMESTER_SCHOOL) { launch { semesterRepository.semesterSchool(it) } }
     eventBus.localConsumer<JsonObject>(Semester.ADDRESS_SEMESTER_CREATE, semesterRepository::semesterCreate)
@@ -64,14 +71,14 @@ class DatabaseVerticle : CoroutineVerticle() {
 
   private fun systemRepository() {
     val roleRepository: RoleRepository = RoleRepositoryImpl(pool)
-    eventBus.localConsumer<Long>(Role.ADDRESS_ROLE_PARENT, roleRepository::roleParent)
-    eventBus.localConsumer<Long>(Role.ADDRESS_ROLE_RES, roleRepository::roleRes)
-    eventBus.localConsumer<JsonObject>(Role.ADDRESS_ROLE_UPDATE, roleRepository::roleUpdate)
+    eventBus.localConsumer<Long>(SysRole.ADDRESS_ROLE_PARENT, roleRepository::roleParent)
+    eventBus.localConsumer<Long>(SysRole.ADDRESS_ROLE_RES, roleRepository::roleRes)
+    eventBus.localConsumer<JsonObject>(SysRole.ADDRESS_ROLE_UPDATE, roleRepository::roleUpdate)
     val resRepository: ResRepository = ResRepositoryIImpl(pool)
-    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES) { launch { resRepository.res(it) } }
-    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES_UPDATE, resRepository::resUpdate)
-    eventBus.localConsumer<Long>(Res.ADDRESS_RES_DELETE, resRepository::resDelete)
-    eventBus.localConsumer<JsonObject>(Res.ADDRESS_RES_CREATE, resRepository::resCreate)
+    eventBus.localConsumer<JsonObject>(AuthCenterRes.ADDRESS_RES) { launch { resRepository.res(it) } }
+    eventBus.localConsumer<JsonObject>(AuthCenterRes.ADDRESS_RES_UPDATE, resRepository::resUpdate)
+    eventBus.localConsumer<Long>(AuthCenterRes.ADDRESS_RES_DELETE, resRepository::resDelete)
+    eventBus.localConsumer<JsonObject>(AuthCenterRes.ADDRESS_RES_CREATE, resRepository::resCreate)
   }
 
   private fun baseRepository() {

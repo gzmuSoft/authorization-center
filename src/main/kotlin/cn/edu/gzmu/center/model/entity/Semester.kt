@@ -31,4 +31,10 @@ data class Semester(
   val modifyTime: LocalDateTime = LocalDateTime.now(),
   val remark: String? = null,
   val isEnable: Boolean = false
-)
+) {
+  companion object{
+    const val ADDRESS_SEMESTER_SCHOOL = "address_semester_school"
+    const val ADDRESS_SEMESTER_UPDATE = "address_semester_update"
+    const val ADDRESS_SEMESTER_CREATE = "address_semester_create"
+  }
+}

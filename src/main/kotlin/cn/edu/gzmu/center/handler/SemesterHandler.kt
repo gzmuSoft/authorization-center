@@ -2,7 +2,7 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.base.BaseHandler
 import cn.edu.gzmu.center.model.address.Address
-import cn.edu.gzmu.center.model.address.Semester
+import cn.edu.gzmu.center.model.entity.Semester
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router

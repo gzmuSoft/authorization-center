@@ -2,7 +2,7 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.base.BaseHandler
 import cn.edu.gzmu.center.model.address.Address
-import cn.edu.gzmu.center.model.address.Role
+import cn.edu.gzmu.center.model.entity.SysRole
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.ext.web.Router
@@ -17,12 +17,12 @@ import io.vertx.ext.web.RoutingContext
 class RoleHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
   init {
     router.get("/role/parent/:parentId")
-      .handler { handlerGet<Long, JsonArray>(it, Role.ADDRESS_ROLE_PARENT, this::roleParent) }
+      .handler { handlerGet<Long, JsonArray>(it, SysRole.ADDRESS_ROLE_PARENT, this::roleParent) }
     router.get("/role/res/:id")
-      .handler { handlerGet<Long, JsonArray>(it, Role.ADDRESS_ROLE_RES, this::roleRes) }
+      .handler { handlerGet<Long, JsonArray>(it, SysRole.ADDRESS_ROLE_RES, this::roleRes) }
     router.patch("/role")
       .handler { Address.parameterHandler.requireJson(it, "id") }
-      .handler { handlerPatch(it, Role.ADDRESS_ROLE_UPDATE) }
+      .handler { handlerPatch(it, SysRole.ADDRESS_ROLE_UPDATE) }
   }
 
   /**

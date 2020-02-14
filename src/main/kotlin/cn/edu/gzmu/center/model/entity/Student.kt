@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  * @date 2020/2/7 下午11:46
  */
 @Serializable
-data class Student (
+data class Student(
   val id: Long? = null,
   val name: String? = null,
   val spell: String? = null,
@@ -46,4 +46,8 @@ data class Student (
   val modifyTime: LocalDateTime = LocalDateTime.now(),
   val remark: String? = null,
   val isEnable: Boolean = false
-)
+) {
+  companion object {
+    const val ADDRESS_STUDENT_ME = "address_student_me"
+  }
+}
