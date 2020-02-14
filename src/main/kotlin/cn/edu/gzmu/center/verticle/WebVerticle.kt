@@ -70,6 +70,7 @@ class WebVerticle : CoroutineVerticle() {
     RoleHandler(router, eventBus)
     ResHandler(router, eventBus)
     DataHandler(router, eventBus)
+    SemesterHandler(router, eventBus)
   }
 
   /**

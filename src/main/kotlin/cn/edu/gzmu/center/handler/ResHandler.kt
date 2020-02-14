@@ -62,6 +62,19 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
       // 0 is all, 1 is menu, 2 is res, 3 is route
       "type" to context.request().getParam("type").toLong()
     )
+  /**
+   * @api {DELETE} /res/:id res delete
+   * @apiVersion 1.0.0
+   * @apiName ResDelete
+   * @apiDescription Get sys data by type.
+   * @apiGroup Res
+   * @apiExample Example usage:
+   *      curl --location --request DELETE 'http://127.0.0.1:8889/res/1'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiSuccessExample {json} Success-response:
+   *      HTTP/1.1 204 No Content
+   */
 
   /**
    * @api {PATCH} /res auth center res update
@@ -105,7 +118,7 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
    * @apiGroup Res
    * @apiUse Bearer
    * @apiExample Example usage:
-   *      curl --location --request PATCH 'http://127.0.0.1:8889/role' \
+   *      curl --location --request POST 'http://127.0.0.1:8889/res' \
    *        --header 'Authorization: Bearer token'
    *        --data-raw '{
    *                      "id": 1,

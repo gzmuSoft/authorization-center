@@ -55,7 +55,11 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer<Long>(Data.ADDRESS_DATA_DELETE, dataRepository::dataDelete)
     eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_UPDATE, dataRepository::dataUpdate)
     eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_CREATE, dataRepository::dataCreate)
-    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_PAGE) { launch { dataRepository.dataPage(it) }}
+    eventBus.localConsumer<JsonObject>(Data.ADDRESS_DATA_PAGE) { launch { dataRepository.dataPage(it) } }
+    val semesterRepository: SemesterRepository = SemesterRepositoryImpl(pool)
+    eventBus.localConsumer<JsonObject>(Semester.ADDRESS_SEMESTER_SCHOOL) { launch { semesterRepository.semesterSchool(it) } }
+    eventBus.localConsumer<JsonObject>(Semester.ADDRESS_SEMESTER_CREATE, semesterRepository::semesterCreate)
+    eventBus.localConsumer<JsonObject>(Semester.ADDRESS_SEMESTER_UPDATE, semesterRepository::semesterUpdate)
   }
 
   private fun systemRepository() {

@@ -105,7 +105,6 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
       val body = response.bodyAsJsonObject()
       Assertions.assertTrue(body.containsKey("content"))
       Assertions.assertTrue(body.containsKey("itemsLength"))
-      Assertions.assertEquals(5, body.getJsonArray("content").size())
       testContext.completeNow()
     }
   }

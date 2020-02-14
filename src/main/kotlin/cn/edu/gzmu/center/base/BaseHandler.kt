@@ -60,8 +60,8 @@ abstract class BaseHandler(private val eventBus: EventBus) {
     val message = params(context)
     // Add page params.
     message.put("sort", context.request().getParam("sort") ?: "")
-    val page = context.request().getParam("page").toLong()
-    val size = context.request().getParam("size").toLong()
+    val page = (context.request().getParam("page") ?: "1").toLong()
+    val size = (context.request().getParam("size") ?: "10").toLong()
     message.put("offset", (page - 1) * size)
     message.put("size", size)
     eventBus.request<JsonObject>(address, message) {
@@ -77,6 +77,9 @@ abstract class BaseHandler(private val eventBus: EventBus) {
       handleResult<R>(context, it)
     }
   }
+
+  protected fun paramId(context: RoutingContext): Long =
+    context.request().getParam("id").toLong()
 
   private fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
     if (ar.failed()) {

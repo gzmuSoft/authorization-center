@@ -178,7 +178,6 @@ class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(),
     val pair =
       if (body.getBoolean("student")) studentUpdate(body.mapAs(Student.serializer()))
       else teacherUpdate(body.mapAs(Teacher.serializer()))
-    println(pair.first)
     pool.preparedQuery(pair.first, pair.second) {
       if (it.failed()) messageException(message, it)
       log.debug("Success update user info: ", body)

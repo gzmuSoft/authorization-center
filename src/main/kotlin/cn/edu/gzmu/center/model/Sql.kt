@@ -268,7 +268,7 @@ class Sql(private val table: String) {
    */
   fun page(sort: String = "sort"): Sql {
     if (sort.isNotBlank()) {
-      sql += "ORDER BY $sort "
+      sql += "ORDER BY ${converter.convert(sort)} "
     }
     sql += "LIMIT $${index++} OFFSET $${index++} "
     return this
