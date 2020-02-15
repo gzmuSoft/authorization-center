@@ -1,9 +1,12 @@
 package cn.edu.gzmu.center.repository
 
 import cn.edu.gzmu.center.base.BaseRepository
+import cn.edu.gzmu.center.model.Sql
+import cn.edu.gzmu.center.model.entity.Student
+import cn.edu.gzmu.center.model.extension.mapAs
+import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.json.jsonArrayOf
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.sqlclient.getConnectionAwait
 import io.vertx.kotlin.sqlclient.preparedQueryAwait
@@ -13,6 +16,7 @@ import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Exception
+import java.util.*
 
 /**
  * .
@@ -29,6 +33,11 @@ interface StudentRepository {
    * userId -- current user id
    */
   suspend fun studentMe(message: Message<JsonObject>)
+
+  /**
+   * Simple update student.
+   */
+  fun studentUpdate(message: Message<JsonObject>)
 }
 
 class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), StudentRepository {
@@ -41,7 +50,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     private const val STUDENT_CLASSES_SPECIALTY =
       "SELECT id, name FROM sys_data WHERE parent_id = $1 and is_enable = true"
     private val STUDENT_USER_CLASS = """
-      SELECT s.name, s.no, s.gender, su.image
+      SELECT s.*, su.image
       FROM student s
       left join sys_user su on su.id = s.user_id
       WHERE s.is_enable = true
@@ -68,6 +77,25 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     } finally {
       connection?.close()
       log.debug("Close temporary database connection.")
+    }
+  }
+
+  override fun studentUpdate(message: Message<JsonObject>) {
+    val body = message.body()
+    val student = body.mapAs(Student.serializer())
+    val sql = Sql(table).update().set { "name" }
+      .setIf(student::no).setIf(student::gender).setIf(student::enterDate)
+      .setIf(student::birthday).setIf(student::idNumber)
+      .where("id").get()
+    pool.preparedQuery(
+      sql, Tuple.of(
+        student.name, student.no, student.gender,
+        student.enterDate, student.birthday, student.idNumber, student.id
+      )
+    ) {
+      messageException(message, it)
+      log.debug("Success update user info: ", student)
+      message.reply("success")
     }
   }
 
@@ -110,20 +138,42 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     if (classId === null || !classes.map { it.getLong("id") }.contains(classId)) {
       return result.put("classes", classes)
     }
-    val students = connection.preparedQueryAwait(
+    val view = body.getJsonArray("resource")
+      .map { res -> res as JsonObject }
+      .find { res ->
+        res.getString("url") == "/student/*" && res.getString("method") == "GET"
+      }
+    val rowSet = connection.preparedQueryAwait(
       STUDENT_USER_CLASS, Tuple.of(
-        classId,
-        "%${body.getString("name")}%", "%${body.getString("no")}%"
+        classId, "%${body.getString("name")}%", "%${body.getString("no")}%"
       )
     )
-      .map { row ->
+    // If this user doesn't have modify permission.
+    if (Objects.isNull(view)) {
+      val students = rowSet.map { row ->
         jsonObjectOf(
           "gender" to row.getString("gender"),
           "no" to row.getString("no"),
           "image" to row.getString("image"),
-          "name" to row.getString("name")
+          "name" to row.getString("name"),
+          "view" to false
         )
       }
+      return result.put("students", students)
+    }
+    // Edit permission.
+    val edit = body.getJsonArray("resource")
+      .map { res -> res as JsonObject }
+      .find { res ->
+        res.getString("url") == "/student" && res.getString("method") == "PATCH"
+      }
+    // If this user has this permission, give he all information.
+    val students = rowSet.map { row ->
+      row.toJsonObject<Student>()
+        .put("image", row.getString("image"))
+        .put("view", true)
+        .put("edit", Objects.nonNull(edit))
+    }
     return result.put("students", students)
   }
 

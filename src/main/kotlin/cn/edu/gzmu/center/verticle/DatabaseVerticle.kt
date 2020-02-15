@@ -52,7 +52,8 @@ class DatabaseVerticle : CoroutineVerticle() {
 
   private fun userRepository() {
     val studentRepository: StudentRepository = StudentRepositoryImpl(pool)
-    eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_ME) { launch { studentRepository.studentMe(it) }}
+    eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_ME) { launch { studentRepository.studentMe(it) } }
+    eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_UPDATE, studentRepository::studentUpdate)
   }
 
   private fun dataRepository() {
