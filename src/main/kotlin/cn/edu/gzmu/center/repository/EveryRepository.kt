@@ -58,7 +58,7 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(),
     private const val DATA_TYPE =
       "SELECT d.id, d.name, d.brief FROM sys_data d WHERE d.type = $1 AND is_enable = true ORDER BY sort"
     private const val DATA_TYPES =
-      "SELECT d.id, d.name, d.brief, d.type, d.sort FROM sys_data d WHERE d.type = any ($1) AND is_enable = true"
+      "SELECT d.id, d.name, d.brief, d.type, d.sort, d.parent_id FROM sys_data d WHERE d.type = any ($1) AND is_enable = true"
     private const val USER_COUNT = "SELECT count(id) FROM sys_user WHERE is_enable = true"
     val DATA_NAME = """
       WITH RECURSIVE cte as (
@@ -102,6 +102,7 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(),
           "name" to row.getString("name"),
           "brief" to row.getString("brief"),
           "type" to row.getLong("type"),
+          "parentId" to row.getLong("parent_id"),
           "sort" to row.getLong("sort")
         )
       }.groupBy { row -> row.getLong("type") }

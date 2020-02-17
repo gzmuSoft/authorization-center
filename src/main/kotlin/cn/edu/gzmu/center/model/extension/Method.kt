@@ -53,6 +53,11 @@ internal fun Tuple.addOptional(value: Any?): Tuple =
   if (value === null) this
   else this.addValue(value)
 
+internal fun Tuple.addOptional(vararg values: Any?): Tuple {
+  values.filterNotNull().forEach { this.addValue(it) }
+  return this
+}
+
 /**
  * Add optional param.
  */

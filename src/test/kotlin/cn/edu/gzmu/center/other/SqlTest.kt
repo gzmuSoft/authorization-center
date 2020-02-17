@@ -121,15 +121,15 @@ class SqlTest {
     assertEquals(EXPECT_SELECT9, page.count().trim())
   }
 
-  @Test
-  internal fun `Test select and not blank`() {
-    val sql = Sql("sys_user")
-      .select { "id" }
-      .whereEnable()
-      .andNotBlank("name" to "", "spell" to "test")
-      .get()
-    assertEquals(EXPECT_SELECT10, sql.trim())
-  }
+//  @Test
+//  internal fun `Test select and not blank`() {
+//    val sql = Sql("sys_user")
+//      .select { "id" }
+//      .whereEnable()
+//      .andNotBlank("name" to "", "spell" to "test")
+//      .get()
+//    assertEquals(EXPECT_SELECT10, sql.trim())
+//  }
 
   @Test
   internal fun `Test Insert into data`() {

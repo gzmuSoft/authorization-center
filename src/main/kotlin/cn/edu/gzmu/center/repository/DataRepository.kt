@@ -7,6 +7,7 @@ import cn.edu.gzmu.center.model.extension.addOptional
 import cn.edu.gzmu.center.model.extension.addOrNull
 import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
+import cn.edu.gzmu.center.model.fileds
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -71,11 +72,7 @@ class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepos
 
   override fun dataDelete(message: Message<Long>) {
     val id = message.body()
-    val sql = Sql(table)
-      .update()
-      .set { "is_enable" }
-      .whereEnable()
-      .and { "id" to id }.get()
+    val sql = "UPDATE $table SET is_enable = $1 WHERE is_enable = true and id = $2"
     pool.preparedQuery(sql, Tuple.of(false, id)) {
       messageException(message, it)
       log.debug("Success delete data: {}", id)
@@ -143,6 +140,7 @@ class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepos
         connection.preparedQueryAwait(sql, Tuple.of(type, "%$name%", body.getLong("size"), body.getLong("offset")))
       val content = rowSet.map { it.toJsonObject<SysData>() }
       log.debug("Success get page data: {}", count)
+      log.debug("Success get page data: {}", content)
       message.reply(jsonObjectOf("content" to content, "itemsLength" to count))
     } catch (e: Exception) {
       message.fail(500, e.cause?.message)
@@ -155,10 +153,7 @@ class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepos
 
   private fun dataByOneField(message: Message<Long>, field: String) {
     val id = message.body()
-    val sql = Sql(table)
-      .select(SysData::class)
-      .where(field)
-      .get()
+    val sql = "SELECT ${fileds(SysData::class)} FROM $table WHERE $field = \$1"
     pool.preparedQuery(sql, Tuple.of(id)) {
       messageException(message, it)
       val data = it.result().map { row -> row.toJsonObject<SysData>() }

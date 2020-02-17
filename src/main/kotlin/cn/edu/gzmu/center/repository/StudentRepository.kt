@@ -3,6 +3,7 @@ package cn.edu.gzmu.center.repository
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.Student
+import cn.edu.gzmu.center.model.extension.addOptional
 import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
@@ -38,6 +39,11 @@ interface StudentRepository {
    * Simple update student.
    */
   fun studentUpdate(message: Message<JsonObject>)
+
+  /**
+   * Student page.
+   */
+  suspend fun studentPage(message: Message<JsonObject>)
 }
 
 class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), StudentRepository {
@@ -47,7 +53,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
   companion object {
     private const val STUDENT_CLASS_ID =
       "SELECT classes_id, specialty_id FROM student WHERE student.user_id = $1 AND student.is_enable = true"
-    private const val STUDENT_CLASSES_SPECIALTY =
+    private const val STUDENT_CLASSES_DEP =
       "SELECT id, name FROM sys_data WHERE parent_id = $1 and is_enable = true"
     private val STUDENT_USER_CLASS = """
       SELECT s.*, su.image
@@ -68,7 +74,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
       connection = pool.getConnectionAwait()
       val result =
         if (body.getBoolean("student")) studentClass(body, connection)
-        else studentSpecialty(body, connection)
+        else studentDep(body, connection)
       log.debug("Get students")
       message.reply(result)
     } catch (e: Exception) {
@@ -85,17 +91,71 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     val student = body.mapAs(Student.serializer())
     val sql = Sql(table).update().set { "name" }
       .setIf(student::no).setIf(student::gender).setIf(student::enterDate)
-      .setIf(student::birthday).setIf(student::idNumber)
-      .where("id").get()
+      .setIf(student::birthday).setIf(student::idNumber).setIf(student::modifyTime)
+      .setIf(student::modifyUser).setIf(student::isEnable)
+      .where(student::id.name).get()
     pool.preparedQuery(
       sql, Tuple.of(
         student.name, student.no, student.gender,
-        student.enterDate, student.birthday, student.idNumber, student.id
+        student.enterDate, student.birthday, student.idNumber,
+        student.modifyTime, student.modifyUser, student.isEnable, student.id
       )
     ) {
       messageException(message, it)
       log.debug("Success update user info: ", student)
       message.reply("success")
+    }
+  }
+
+  override suspend fun studentPage(message: Message<JsonObject>) {
+    val body = message.body()
+    val sort = body.getString("sort")
+    body.put("sort", 1)
+    val student = body.mapAs(Student.serializer())
+    val baseSql = Sql(table)
+      .select(Student::class)
+      .whereLike(student::name).like(student::no)
+      .andNonNull(
+        student::gender, student::enterDate, student::nation, student::academic,
+        student::schoolId, student::collegeId, student::depId, student::specialtyId,
+        student::classesId, student::isEnable
+      )
+    var connection: SqlConnection? = null
+    try {
+      connection = pool.getConnectionAwait()
+      val params = Tuple.of("%${student.name}%", "%${student.no}%").addOptional(
+        student.gender,
+        student.enterDate, student.nation, student.academic, student.schoolId,
+        student.collegeId, student.depId, student.specialtyId,
+        student.classesId, student.isEnable
+      )
+      val count = connection.preparedQueryAwait(baseSql.count(), params).first().getLong("count")
+      val sql = baseSql.page(sort).get()
+      val rowSet =
+        connection.preparedQueryAwait(sql, params.addLong(body.getLong("size")).addLong(body.getLong("offset")))
+      val resource = body.getJsonArray("resource").map { it as JsonObject }
+      val userViewPermission = resource.find { res ->
+        res.getString("url") == "/user/*" && res.getString("method") == "GET"
+      } != null
+      val userEditPermission = resource.find { res ->
+        res.getString("url") == "/user/*" && res.getString("method") == "PATCH"
+      } != null
+      val studentEditPermission = resource.find { res ->
+        res.getString("url") == "/student/complete" && res.getString("method") == "PATCH"
+      } != null
+      val content = rowSet.map {
+        it.toJsonObject<Student>()
+          .put("userView", userViewPermission).put("userEdit", userEditPermission)
+          .put("edit", studentEditPermission)
+      }
+      log.debug("Success get page data: {}", count)
+      message.reply(jsonObjectOf("content" to content, "itemsLength" to count))
+    } catch (e: Exception) {
+      message.fail(500, e.cause?.message)
+      throw e
+    } finally {
+      connection?.close()
+      log.debug("Close temporary database connection.")
     }
   }
 
@@ -126,14 +186,14 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
   }
 
   @Throws(Exception::class)
-  private suspend fun studentSpecialty(body: JsonObject, connection: SqlConnection): JsonObject {
-    val specialtyId = connection.preparedQueryAwait(STUDENT_CLASS_ID, Tuple.of(body.getLong("userId")))
-      .first().getLong("specialty_id")
-    val info = connection.preparedQueryAwait(EveryRepositoryImpl.DATA_NAME, Tuple.of(specialtyId))
+  private suspend fun studentDep(body: JsonObject, connection: SqlConnection): JsonObject {
+    val depId = connection.preparedQueryAwait(STUDENT_CLASS_ID, Tuple.of(body.getLong("userId")))
+      .first().getLong("dep_id")
+    val info = connection.preparedQueryAwait(EveryRepositoryImpl.DATA_NAME, Tuple.of(depId))
       .joinToString(" / ") { row -> row.getString("name") }
     val classId = body.getLong("classId")
     val result = jsonObjectOf("info" to info)
-    val classes = connection.preparedQueryAwait(STUDENT_CLASSES_SPECIALTY, Tuple.of(specialtyId))
+    val classes = connection.preparedQueryAwait(STUDENT_CLASSES_DEP, Tuple.of(depId))
       .map { row -> jsonObjectOf("id" to row.getLong("id"), "name" to row.getString("name")) }
     if (classId === null || !classes.map { it.getLong("id") }.contains(classId)) {
       return result.put("classes", classes)

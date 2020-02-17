@@ -25,11 +25,31 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
     router.patch("/student")
       .handler {
         Address.parameterHandler.requireJson(
-          it, "id", "name", "no", "gender", "enterDate", "birthday", "idNumber"
+          // Only update these fields.
+          it, "id", "name", "no", "gender", "enterDate", "birthday", "idNumber", "isEnable"
         )
       }
       .handler { handlerPatch(it, Student.ADDRESS_STUDENT_UPDATE) }
+    router.get("/student")
+      .handler { handlerPage(it, Student.ADDRESS_STUDENT_PAGE, this::studentPage) }
   }
+
+  private fun studentPage(context: RoutingContext): JsonObject =
+    jsonObjectOf(
+      "name" to (context.request().getParam("name") ?: ""),
+      "no" to (context.request().getParam("no") ?: ""),
+      "gender" to (context.request().getParam("gender")),
+      "enterDate" to (context.request().getParam("enterDate")),
+      "nation" to (context.request().getParam("nation")?.toLong()),
+      "academic" to (context.request().getParam("academic")?.toLong()),
+      "schoolId" to (context.request().getParam("schoolId")?.toLong()),
+      "collegeId" to (context.request().getParam("collegeId")?.toLong()),
+      "depId" to (context.request().getParam("depId")?.toLong()),
+      "specialtyId" to (context.request().getParam("specialtyId")?.toLong()),
+      "classesId" to (context.request().getParam("classesId")?.toLong()),
+      "isEnable" to (context.request().getParam("isEnable")?.toBoolean()?:true),
+      "resource" to context.get<JsonArray>("resource")
+    )
 
   /**
    * @api {GET} /student/me get students by user role

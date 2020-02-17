@@ -7,7 +7,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty0
 import kotlin.reflect.full.memberProperties
 
-
+private val converter: Converter<String, String> =
+  CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE)
 /**
  * Sql builder.
  * Must set [table].
@@ -18,8 +19,6 @@ import kotlin.reflect.full.memberProperties
 class Sql(private val table: String) {
   private var sql: String = ""
   private var index: Int = 1
-  var converter: Converter<String, String> =
-    CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE)
 
   private fun empty(): String = ""
 
@@ -112,6 +111,19 @@ class Sql(private val table: String) {
   }
 
   /**
+   * Where condition.
+   */
+  fun where(property: KProperty0<*>): Sql {
+    condition("WHERE") { converter.convert(property.name)!! to "" }
+    return this
+  }
+
+  fun whereLike(property: KProperty0<*>): Sql {
+    sql += " WHERE ${converter.convert(property.name)} LIKE $${index++} "
+    return this
+  }
+
+  /**
    * Where condition if not null.
    */
   fun whereIf(field: () -> Pair<String, Any?>): Sql {
@@ -147,9 +159,9 @@ class Sql(private val table: String) {
   /**
    * more condition, not blank and not null
    */
-  fun andNotBlank(vararg fields: Pair<String, Any?>): Sql {
-    fields.filter { it.second?.toString()?.isNotBlank() == true }
-      .forEach { and { it } }
+  fun andNonNull(vararg properties: KProperty0<*>): Sql {
+    properties.filter { it.get() != null}
+      .forEach { and { converter.convert(it.name)!! to "" } }
     return this
   }
 
@@ -279,6 +291,26 @@ class Sql(private val table: String) {
     return this
   }
 
+  fun like(property: KProperty0<*>): Sql {
+    sql += "AND ${converter.convert(property.name)} LIKE $${index++} "
+    return this
+  }
+
 }
 
 internal infix fun String.and(s: String): String = "$this, $s"
+
+fun fileds(entity: KClass<*>): String {
+  return entity.memberProperties.joinToString(", ") {
+    converter.convert(it.name).toString()
+  }
+}
+
+fun count(sql: String): String {
+  val start = sql.indexOf("SELECT") + 7
+  val end = sql.indexOf("FROM") - 1
+  return sql.replaceRange(IntRange(start, end), "count(id) ")
+}
+
+fun converterField(str: String): String = converter.convert(str).toString()
+
