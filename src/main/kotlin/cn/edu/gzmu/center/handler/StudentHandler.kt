@@ -49,7 +49,46 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
       }
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_ADD) }
   }
-
+  /**
+   * @api {GET} /student get students page
+   * @apiVersion 1.0.0
+   * @apiName StudentPage
+   * @apiDescription Get students page
+   * @apiGroup Student
+   * @apiExample Example usage:
+   *      curl --location --request GET 'http://127.0.0.1:8889/student/me'
+   *        --header 'Authorization: Bearer token'
+   * @apiUse Bearer
+   * @apiParam {String}     [name ]               name
+   * @apiParam {String}     [no ]                 no
+   * @apiParam {String}     [enterDate ]          enter date
+   * @apiParam {String}     [gender ]             gender -> 男 or 女
+   * @apiParam {Long}       [nation ]             sys data 9
+   * @apiParam {Long}       [academic ]           sys data 6
+   * @apiParam {Long}       [schoolId ]           sys data 0
+   * @apiParam {Long}       [collegeId ]          sys data 1
+   * @apiParam {Long}       [depId ]              sys data 2
+   * @apiParam {Long}       [specialtyId ]        sys data 3
+   * @apiParam {Long}       [classesId ]          sys data 4
+   * @apiParam {Boolean}    [isEnable ]           enable
+   * @apiSuccess {Array} content                  page
+   * @apiSuccess {Long} itemsLength               element number
+   * @apiSuccess {boolean} userView               every entity has this field. Whether users can view user information.
+   * @apiSuccess {boolean} userEdit               every entity has this field. Whether users can edit user information.
+   * @apiSuccess {boolean} edit                   every entity has this field. Whether users can edit student information.
+   * @apiSuccess {boolean} resetPassword          every entity has this field. Whether users can reset user password.
+   * @apiSuccessExample {json} Teacher - no class id:
+   *      HTTP/1.1 200 OK
+   *      [
+   *          "info": "贵州民族大学 / 数据科学与信息工程学院 / 数信系 / 计算机科学专业",
+   *          "classes": [
+   *              {
+   *                  "id": 10,
+   *                  "name": "火箭班"
+   *              }
+   *          ]
+   *      ]
+   */
   private fun studentPage(context: RoutingContext): JsonObject =
     jsonObjectOf(
       "name" to (context.request().getParam("name") ?: ""),
@@ -156,14 +195,62 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
    *                      "birthday": "",
    *                      "idNumber": ""
    *                    }'
-   * @apiParam {Long}     id                     data id
-   * @apiParam {String}   name                   data name
-   * @apiParam {String}   no                     data name
-   * @apiParam {String}   gender                 data name
-   * @apiParam {String}   enterDate              data name
-   * @apiParam {String}   birthday               data name
-   * @apiParam {String}   idNumber               data name
+   * @apiParam {Long}     id                   id
+   * @apiParam {String}   name                 name
+   * @apiParam {String}   no                   no
+   * @apiParam {String}   gender               gender
+   * @apiParam {String}   enterDate            enter date
+   * @apiParam {String}   birthday             birthday
+   * @apiParam {String}   idNumber             id number
+   * @apiParam {String}   isEnable             is enable
    * @apiSuccessExample {json} Success-response:
    *      HTTP/1.1 204 No Content
    */
+  /**
+   * @api {PATCH} /student/complete student complete update
+   * @apiVersion 1.0.0
+   * @apiName StudentCompleteUpdate
+   * @apiDescription Update student.
+   * @apiGroup Student
+   * @apiUse Bearer
+   * @apiExample Example usage:
+   *      curl --location --request PATCH 'http://127.0.0.1:8889/student/complete' \
+   *        --header 'Authorization: Bearer token'
+   *        --data-raw '{
+   *                      "id": 1,
+   *                      "name": "test",
+   *                      "no": "",
+   *                      "gender": "",
+   *                      "enterDate": "",
+   *                      "nation": 1,
+   *                      "academic": 1,
+   *                      "schoolId": 1,
+   *                      "collegeId": 1,
+   *                      "depId": 1,
+   *                      "specialtyId": 1,
+   *                      "classesId": 1,
+   *                      "sort": 1,
+   *                      "remark": 1,
+   *                      "birthday": "",
+   *                      "idNumber": ""
+   *                    }'
+   * @apiParam {Long}     id                   id
+   * @apiParam {String}   name                 name
+   * @apiParam {String}   no                   no
+   * @apiParam {String}   gender               gender
+   * @apiParam {String}   enterDate            enter date
+   * @apiParam {String}   birthday             birthday
+   * @apiParam {String}   idNumber             id number
+   * @apiParam {String}   academic             academic
+   * @apiParam {String}   schoolId             school id
+   * @apiParam {String}   collegeId            college id
+   * @apiParam {String}   depId                department id
+   * @apiParam {String}   specialtyId          specialty id
+   * @apiParam {String}   classesId            classes id
+   * @apiParam {String}   sort                 sort
+   * @apiParam {String}   remark               remark
+   * @apiSuccessExample {json} Success-response:
+   *      HTTP/1.1 204 No Content
+   */
+
 }
