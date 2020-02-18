@@ -51,7 +51,8 @@ class StudentHandlerTest : OauthHelper() {
             "gender" to "男",
             "enterDate" to "2019-12-11",
             "birthday" to "2019-12-11",
-            "idNumber" to "20213131313"
+            "idNumber" to "20213131313",
+            "isEnable" to true
           )
         ) {
           resultCheck(testContext, it)
@@ -62,5 +63,13 @@ class StudentHandlerTest : OauthHelper() {
           }
         }
     }
+  }
+
+  @Test
+  internal fun `Get student page when passed`(testContext: VertxTestContext) {
+    client.get("/student")
+      .send {
+        pageCheck(testContext, it)
+      }
   }
 }

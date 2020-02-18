@@ -31,5 +31,9 @@ data class SysUser(
   val modifyTime: LocalDateTime = LocalDateTime.now(),
   val remark: String? = null,
   val isEnable: Boolean = false
-)
+) {
+  companion object {
+    const val ADDRESS_USER_ONE = "address_user_one"
+  }
+}
 

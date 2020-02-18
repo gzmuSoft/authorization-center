@@ -138,7 +138,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         res.getString("url") == "/user/*" && res.getString("method") == "GET"
       } != null
       val userEditPermission = resource.find { res ->
-        res.getString("url") == "/user/*" && res.getString("method") == "PATCH"
+        res.getString("url") == "/user" && res.getString("method") == "PATCH"
       } != null
       val studentEditPermission = resource.find { res ->
         res.getString("url") == "/student/complete" && res.getString("method") == "PATCH"
