@@ -32,6 +32,22 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
       .handler { handlerPatch(it, Student.ADDRESS_STUDENT_UPDATE) }
     router.get("/student")
       .handler { handlerPage(it, Student.ADDRESS_STUDENT_PAGE, this::studentPage) }
+    router.patch("/student/complete")
+      .handler {
+        Address.parameterHandler.requireJson(
+          it, "id", "name", "no", "gender", "enterDate", "birthday", "idNumber",
+          "schoolId", "collegeId", "depId", "specialtyId", "classesId", "sort", "remark"
+        )
+      }
+      .handler { handlerPatch(it, Student.ADDRESS_STUDENT_UPDATE_COMPLETE) }
+    router.post("/student")
+      .handler {
+        Address.parameterHandler.requireJson(
+          it, "name", "no", "gender", "enterDate", "birthday", "idNumber",
+          "academic", "schoolId", "collegeId", "depId", "specialtyId", "classesId", "sort", "remark"
+        )
+      }
+      .handler { handlerCreate(it, Student.ADDRESS_STUDENT_ADD) }
   }
 
   private fun studentPage(context: RoutingContext): JsonObject =
@@ -47,7 +63,7 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
       "depId" to (context.request().getParam("depId")?.toLong()),
       "specialtyId" to (context.request().getParam("specialtyId")?.toLong()),
       "classesId" to (context.request().getParam("classesId")?.toLong()),
-      "isEnable" to (context.request().getParam("isEnable")?.toBoolean()?:true),
+      "isEnable" to (context.request().getParam("isEnable")?.toBoolean() ?: true),
       "resource" to context.get<JsonArray>("resource")
     )
 

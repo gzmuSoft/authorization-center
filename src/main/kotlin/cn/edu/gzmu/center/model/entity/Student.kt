@@ -51,6 +51,7 @@ data class Student(
     const val ADDRESS_STUDENT_ME = "address_student_me"
     const val ADDRESS_STUDENT_UPDATE = "address_student_update"
     const val ADDRESS_STUDENT_PAGE = "address_student_page"
-    const val ADDRESS_STUDENT_ONE = "address_student_one"
+    const val ADDRESS_STUDENT_UPDATE_COMPLETE = "address_student_update_complete"
+    const val ADDRESS_STUDENT_ADD = "address_student_add"
   }
 }

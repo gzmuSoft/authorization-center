@@ -34,6 +34,8 @@ data class SysUser(
 ) {
   companion object {
     const val ADDRESS_USER_ONE = "address_user_one"
+    const val ADDRESS_USER_PASSWORD = "address_user_password"
+    const val ADDRESS_USER_UPDATE = "address_user_update"
   }
 }
 

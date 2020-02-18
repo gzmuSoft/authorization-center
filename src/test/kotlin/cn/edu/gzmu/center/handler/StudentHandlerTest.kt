@@ -72,4 +72,50 @@ class StudentHandlerTest : OauthHelper() {
         pageCheck(testContext, it)
       }
   }
+
+  @Test
+  internal fun `Update student compete information when passed`(testContext: VertxTestContext) {
+    client.patch("/student/complete")
+      .sendJsonObject(jsonObjectOf(
+        "id" to 10,
+        "name" to "testSTUDENT",
+        "gender" to "男",
+        "no" to "201401011234",
+        "idNumber" to "522520199708810014",
+        "enterDate" to "2011-12-11",
+        "birthday" to "2011-12-11",
+        "academic" to 54,
+        "schoolId" to 1,
+        "collegeId" to 2,
+        "depId" to 19,
+        "specialtyId" to 20,
+        "classesId" to 22,
+        "sort" to 25,
+        "remark" to "remark"
+      )) {
+        noContentCheck(testContext, it)
+      }
+  }
+  @Test
+  internal fun `Add student compete information when passed`(testContext: VertxTestContext) {
+    client.post("/student")
+      .sendJsonObject(jsonObjectOf(
+        "name" to "testSTUDENT",
+        "gender" to "男",
+        "no" to "20140101${(1000..9999).random()}",
+        "idNumber" to "522520199708810014",
+        "enterDate" to "2011-12-11",
+        "birthday" to "2011-12-11",
+        "academic" to 54,
+        "schoolId" to 1,
+        "collegeId" to 2,
+        "depId" to 19,
+        "specialtyId" to 20,
+        "classesId" to 22,
+        "sort" to 25,
+        "remark" to "remark"
+      )) {
+        noContentCheck(testContext, it)
+      }
+  }
 }
