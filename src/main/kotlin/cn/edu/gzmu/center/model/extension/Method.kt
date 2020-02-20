@@ -1,5 +1,6 @@
 package cn.edu.gzmu.center.model.extension
 
+import cn.edu.gzmu.center.model.address.Address
 import cn.edu.gzmu.center.model.address.Address.Companion.DATABASE
 import cn.edu.gzmu.center.model.address.Oauth.Companion.OAUTH
 import com.google.common.base.CaseFormat
@@ -11,6 +12,7 @@ import io.vertx.sqlclient.Tuple
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
+import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.reflect.full.primaryConstructor
@@ -75,3 +77,11 @@ object KotlinJson {
   fun json() = json
 
 }
+
+/**
+ * Encode password.
+ * if [password] length less then 6, return 000000
+ */
+fun encodePassword(password: String): String =
+  if (password.length < 6) "000000"
+  else BCrypt.hashpw(password.substring(password.length - 6), BCrypt.gensalt(Address.LOG_ROUNDS))

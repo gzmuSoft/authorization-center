@@ -1,18 +1,19 @@
 package cn.edu.gzmu.center.repository
 
 import cn.edu.gzmu.center.base.BaseRepository
-import cn.edu.gzmu.center.model.address.Address
 import cn.edu.gzmu.center.model.entity.SysUser
+import cn.edu.gzmu.center.model.extension.encodePassword
 import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
+import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.sqlclient.getConnectionAwait
 import io.vertx.kotlin.sqlclient.preparedQueryAwait
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
-import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Exception
@@ -39,6 +40,12 @@ interface UserRepository {
    * Update user
    */
   fun userUpdate(message: Message<JsonObject>)
+
+  /**
+   * user exist
+   * [message] are user names
+   */
+  fun userExist(message: Message<JsonArray>)
 }
 
 class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(), UserRepository {
@@ -48,6 +55,10 @@ class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(), UserRepos
   companion object {
     const val USER_UPDATE =
       "UPDATE sys_user SET name = $1, email = $2, phone = $3, modify_time = $4, modify_user = $5 WHERE id = $6"
+    const val USER_INSERT =
+      "INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4) RETURNING id, name"
+    const val USER_EXIST =
+      "SELECT id, name FROM sys_user WHERE name = any ($1)"
   }
 
   override fun userOne(message: Message<Long>) {
@@ -82,7 +93,7 @@ class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(), UserRepos
         message.fail(404, "此学生学号不存在或小于 6 位")
         return
       }
-      val password = BCrypt.hashpw(no.substring(no.length - 6), BCrypt.gensalt(Address.LOG_ROUNDS))
+      val password = encodePassword(no)
       connection.preparedQueryAwait("UPDATE $table SET password = $1 WHERE id = $2", Tuple.of(password, userId))
       log.debug("Success reset user {} password: {}", userId, no.substring(no.length - 6))
       message.reply("Success")
@@ -105,6 +116,15 @@ class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(), UserRepos
       messageException(message, it)
       log.debug("Success update user info: {}", user)
       message.reply("Success")
+    }
+  }
+
+  override fun userExist(message: Message<JsonArray>) {
+    pool.preparedQuery(USER_EXIST, Tuple.of(message.body().toTypeArray<String>())) {
+      messageException(message, it)
+      val result = it.result().map { row -> row.toJsonObject<SysUser>() }
+      log.debug("Success exist user: {}", result)
+      message.reply(JsonArray(result))
     }
   }
 }

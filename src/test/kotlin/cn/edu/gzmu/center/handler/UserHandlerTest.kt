@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.OauthHelper
 import io.vertx.junit5.VertxTestContext
+import io.vertx.kotlin.core.json.jsonArrayOf
 import io.vertx.kotlin.core.json.jsonObjectOf
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -53,6 +54,21 @@ class UserHandlerTest : OauthHelper() {
         )
       ) {
         noContentCheck(testContext, it)
+      }
+  }
+
+  @Test
+  internal fun `Exist user when passed`(testContext: VertxTestContext) {
+    client.post("/user/exist")
+      .sendJson(jsonArrayOf("admin")) {
+        resultCheck(testContext, it)
+        val response = it.result()
+        testContext.verify {
+          assertEquals(ok, response.statusCode())
+          val result = response.bodyAsJsonArray()
+          assertEquals(1, result.size())
+          testContext.completeNow()
+        }
       }
   }
 }

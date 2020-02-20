@@ -117,5 +117,14 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
       testContext.completeNow()
     }
   }
+
+  protected fun createCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>) {
+    resultCheck(testContext, ar)
+    val response = ar.result()
+    testContext.verify {
+      Assertions.assertEquals(created, response.statusCode())
+      testContext.completeNow()
+    }
+  }
 }
 

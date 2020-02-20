@@ -2,6 +2,7 @@ package cn.edu.gzmu.center.handler
 
 import cn.edu.gzmu.center.OauthHelper
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxTestContext
 import io.vertx.kotlin.core.json.jsonObjectOf
 import kotlinx.coroutines.GlobalScope
@@ -116,6 +117,71 @@ class StudentHandlerTest : OauthHelper() {
         "remark" to "remark"
       )) {
         noContentCheck(testContext, it)
+      }
+  }
+
+  @Test
+  internal fun `Import student when passed`(testContext: VertxTestContext) {
+    val data = """
+      {
+        "content":[
+          {
+            "school":"贵州民族大学",
+            "college":"数据科学与信息工程学院",
+            "dep":"软件工程系",
+            "specialty":"软件工程",
+            "classes":"2017级软件工程1班",
+            "no":"201742060106",
+            "name":"张三1",
+            "gender":"女",
+            "nation":62,
+            "idNumber":"520123199808110032",
+            "birthday":"1998-08-11",
+            "enterDate":"2017-09-01",
+            "academic":51,
+            "graduationDate":"2017-06-30",
+            "graduateInstitution":null,
+            "remark":null,
+            "schoolId":1,
+            "collegeId":2,
+            "depId":null,
+            "specialtyId":null,
+            "classesId":null,
+            "academicName":"高中",
+            "nationName":"苗族"
+          },
+          {
+            "school":"贵州民族大学",
+            "college":"数据科学与信息工程学院",
+            "dep":"软件工程系",
+            "specialty":"软件工程",
+            "classes":"2017级软件工程1班",
+            "no":"201742060107",
+            "name":"张三2",
+            "gender":"女",
+            "nation":62,
+            "idNumber":"520123199808110032",
+            "birthday":"1998-08-11",
+            "enterDate":"2017-09-01",
+            "academic":51,
+            "graduationDate":"2017-06-30",
+            "graduateInstitution":null,
+            "remark":null,
+            "schoolId":1,
+            "collegeId":2,
+            "depId":null,
+            "specialtyId":null,
+            "classesId":null,
+            "academicName":"高中",
+            "nationName":"苗族"
+          }
+        ]
+      }
+    """.trimIndent()
+    val param = JsonObject(data)
+    client.post("/student/import")
+      .sendJsonObject(param) {
+        createCheck(testContext, it)
       }
   }
 }

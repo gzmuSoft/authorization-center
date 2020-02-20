@@ -48,6 +48,8 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_ADD) }
+    router.post("/student/import")
+      .handler { handlerCreate(it, Student.ADDRESS_STUDENT_IMPORT) }
   }
   /**
    * @api {GET} /student get students page
@@ -176,6 +178,7 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
       "student" to context.user().principal().getBoolean("is_student"),
       "resource" to context.get<JsonArray>("resource")
     )
+
   /**
    * @api {PATCH} /student student simple update
    * @apiVersion 1.0.0

@@ -14,7 +14,7 @@ import io.vertx.ext.web.RoutingContext
  * @author <a href="https://echocow.cn">EchoCow</a>
  * @date 2020/2/17 下午10:49
  */
-class UserHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
+class UserHandler(router: Router, private val eventBus: EventBus) : BaseHandler(eventBus) {
   init {
     router.get("/user/:id").handler { handlerGet<Long, JsonObject>(it, SysUser.ADDRESS_USER_ONE, this::userId) }
     router.patch("/user/password")
@@ -23,6 +23,7 @@ class UserHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
     router.patch("/user")
       .handler { Address.parameterHandler.requireJson(it, "id", "name", "email", "phone") }
       .handler { handlerPatch(it, SysUser.ADDRESS_USER_UPDATE) }
+    router.post("/user/exist").handler(this::userExist)
   }
 
   /**
@@ -100,4 +101,10 @@ class UserHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
    *      HTTP/1.1 204 No Content
    */
 
+  private fun userExist(context: RoutingContext) {
+    val names = context.bodyAsJsonArray
+    eventBus.request<JsonObject>(SysUser.ADDRESS_USER_EXIST, names) {
+      handleResult(context, it)
+    }
+  }
 }

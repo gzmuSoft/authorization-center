@@ -50,7 +50,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     }
   }
 
-  private fun userRepository() {
+  private suspend fun userRepository() {
     val studentRepository: StudentRepository = StudentRepositoryImpl(pool)
     eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_ME) { launch { studentRepository.studentMe(it) } }
     eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_UPDATE, studentRepository::studentUpdate)
@@ -59,13 +59,15 @@ class DatabaseVerticle : CoroutineVerticle() {
       Student.ADDRESS_STUDENT_UPDATE_COMPLETE,
       studentRepository::studentUpdateComplete
     )
+    eventBus.localConsumer<JsonObject>(Student.ADDRESS_STUDENT_IMPORT) { launch { studentRepository.studentImport(it) } }
     val userRepository: UserRepository = UserRepositoryImpl(pool)
     eventBus.localConsumer<Long>(SysUser.ADDRESS_USER_ONE, userRepository::userOne)
     eventBus.localConsumer<JsonObject>(SysUser.ADDRESS_USER_PASSWORD) { launch { userRepository.userPassword(it) } }
     eventBus.localConsumer<JsonObject>(SysUser.ADDRESS_USER_UPDATE, userRepository::userUpdate)
+    eventBus.localConsumer<JsonArray>(SysUser.ADDRESS_USER_EXIST, userRepository::userExist)
   }
 
-  private fun dataRepository() {
+  private suspend fun dataRepository() {
     val dataRepository: DataRepository = DataRepositoryImpl(pool)
     eventBus.localConsumer<Long>(SysData.ADDRESS_DATA_TYPE, dataRepository::dataType)
     eventBus.localConsumer<Long>(SysData.ADDRESS_DATA_PARENT, dataRepository::dataParent)
@@ -79,7 +81,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer<JsonObject>(Semester.ADDRESS_SEMESTER_UPDATE, semesterRepository::semesterUpdate)
   }
 
-  private fun systemRepository() {
+  private suspend fun systemRepository() {
     val roleRepository: RoleRepository = RoleRepositoryImpl(pool)
     eventBus.localConsumer<Long>(SysRole.ADDRESS_ROLE_PARENT, roleRepository::roleParent)
     eventBus.localConsumer<Long>(SysRole.ADDRESS_ROLE_RES, roleRepository::roleRes)
@@ -99,7 +101,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer<JsonObject>(Every.ADDRESS_SYS_USER_EXIST, everyRepository::userExist)
   }
 
-  private fun meRepository() {
+  private suspend fun meRepository() {
     val oauthRepository: OauthRepository = OauthRepositoryImpl(pool)
     val meRepository: MeRepository = MeRepositoryImpl(pool)
     eventBus.localConsumer<JsonArray>(Oauth.ADDRESS_ROLE_RESOURCE, oauthRepository::roleResource)

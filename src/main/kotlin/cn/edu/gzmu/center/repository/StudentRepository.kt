@@ -4,20 +4,26 @@ import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.Student
 import cn.edu.gzmu.center.model.extension.addOptional
+import cn.edu.gzmu.center.model.extension.encodePassword
 import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
+import cn.edu.gzmu.center.repository.UserRepositoryImpl.Companion.USER_INSERT
 import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
-import io.vertx.kotlin.sqlclient.getConnectionAwait
-import io.vertx.kotlin.sqlclient.preparedQueryAwait
+import io.vertx.kotlin.coroutines.awaitBlocking
+import io.vertx.kotlin.coroutines.awaitEvent
+import io.vertx.kotlin.coroutines.awaitResult
+import io.vertx.kotlin.sqlclient.*
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.Exception
+import java.time.LocalDateTime
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * .
@@ -49,6 +55,15 @@ interface StudentRepository {
    * Complete update student.
    */
   fun studentUpdateComplete(message: Message<JsonObject>)
+
+  /**
+   * Student import.
+   * [message]:
+   * content ---- student info
+   * config  ---- other config
+   * createUser ----  create user
+   */
+  suspend fun studentImport(message: Message<JsonObject>)
 }
 
 class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), StudentRepository {
@@ -77,7 +92,26 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
       sort = $13, remark = $14, modify_time = $15, modify_user = $16 WHERE id = $17
     """.trimIndent()
     private val STUDENT_INSERT = """
-      INSERT INTO student student()
+      INSERT INTO student(
+        name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
+        id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
+        create_user, create_time, remark)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      RETURNING id, name, no
+    """.trimIndent()
+    private val STUDENT_USER_INSERT = """
+      WITH cte as (
+        INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4)
+        on conflict(name) do nothing
+        RETURNING id as userId
+      )
+      INSERT INTO student(
+        name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
+        id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
+        create_user, create_time, remark)
+      VALUES ($5, (SELECT userId FROM cte), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      on conflict(no) do nothing
+      RETURNING id, name, no
     """.trimIndent()
   }
 
@@ -190,6 +224,35 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
       messageException(message, it)
       log.debug("Success compete update student")
       message.reply("Success")
+    }
+  }
+
+  override suspend fun studentImport(message: Message<JsonObject>) {
+    val body = message.body()
+    val students = body.getJsonArray("content")
+    val createTime = LocalDateTime.now()
+    val createUser = body.getString("createUser")
+    val transaction = pool.beginAwait()
+    try {
+      val studentParam = students.map {
+        it as JsonObject
+        val student = it.mapAs(Student.serializer())
+        val password = awaitBlocking { encodePassword(student.no!!) }
+        Tuple.of(
+          student.no, password, createUser, createTime,
+          student.name, student.schoolId, student.collegeId, student.depId, student.specialtyId,
+          student.classesId, student.no, student.gender, student.idNumber, student.birthday,
+          student.enterDate, student.academic, student.nation, student.graduationDate,
+          student.graduateInstitution, createUser, createTime, student.remark
+        )
+      }
+      transaction.preparedBatchAwait(STUDENT_USER_INSERT, studentParam)
+      transaction.commitAwait()
+      log.debug("Success import student.")
+      message.reply("Success")
+    } catch (e: Exception) {
+      message.fail(500, e.cause?.message)
+      throw e
     }
   }
 

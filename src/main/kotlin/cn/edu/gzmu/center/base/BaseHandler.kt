@@ -81,7 +81,7 @@ abstract class BaseHandler(private val eventBus: EventBus) {
   protected fun paramId(context: RoutingContext): Long =
     context.request().getParam("id").toLong()
 
-  private fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
+  protected fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
     if (ar.failed()) {
       context.fail(DatabaseException(ar.cause().localizedMessage))
       return
