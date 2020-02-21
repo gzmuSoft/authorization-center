@@ -255,5 +255,4 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
    * @apiSuccessExample {json} Success-response:
    *      HTTP/1.1 204 No Content
    */
-
 }

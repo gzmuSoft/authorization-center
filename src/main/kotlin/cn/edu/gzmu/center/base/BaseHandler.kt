@@ -81,7 +81,7 @@ abstract class BaseHandler(private val eventBus: EventBus) {
   protected fun paramId(context: RoutingContext): Long =
     context.request().getParam("id").toLong()
 
-  protected fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
+  internal fun <T> handleResult(context: RoutingContext, ar: AsyncResult<Message<T>>) {
     if (ar.failed()) {
       context.fail(DatabaseException(ar.cause().localizedMessage))
       return
@@ -91,7 +91,7 @@ abstract class BaseHandler(private val eventBus: EventBus) {
       .end(ar.result().body().toString())
   }
 
-  private fun handleNoResult(
+  protected fun handleNoResult(
     context: RoutingContext, status: HttpResponseStatus = HttpResponseStatus.OK,
     ar: AsyncResult<Message<Unit>>
   ) {
