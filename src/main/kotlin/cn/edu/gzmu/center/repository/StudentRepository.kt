@@ -86,40 +86,42 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
       college_id = $9, dep_id = $10, specialty_id = $11, classes_id = $12,
       sort = $13, remark = $14, modify_time = $15, modify_user = $16 WHERE id = $17
     """.trimIndent()
-    private val STUDENT_INSERT = """
-      INSERT INTO student(
-        name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
-        id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
-        create_user, create_time, remark)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-      RETURNING id, name, no
-    """.trimIndent()
     private val STUDENT_USER_INSERT_NOTHING = """
-      WITH cte as (
+      WITH u as (
         INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4)
-        on conflict(name) do nothing
+        ON CONFLICT(name) do nothing
         RETURNING id as userId
+      ), role as (
+        SELECT id as roleId FROM sys_role WHERE name = 'ROLE_STUDENT'
+      ), userRes as (
+        INSERT INTO sys_user_role(user_id, role_id)
+        VALUES ((SELECT userId FROM u), (SELECT roleId FROM role))
       )
       INSERT INTO student(
         name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
         id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
         create_user, create_time, remark)
-      VALUES ($5, (SELECT userId FROM cte), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
-      on conflict(no) do nothing
+      VALUES ($5, (SELECT userId FROM u), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      ON CONFLICT(no) do nothing
       RETURNING id, name, no
     """.trimIndent()
     private val STUDENT_USER_INSERT_UPDATE = """
-      WITH cte as (
+      WITH u as (
         INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4)
-        on conflict(name) do update set password = excluded.password, is_enable = true
+        ON CONFLICT(name) do update set password = excluded.password, is_enable = true
         RETURNING id as userId
+      ), role as (
+        SELECT id as roleId FROM sys_role WHERE name = 'ROLE_STUDENT'
+      ), userRes as (
+        INSERT INTO sys_user_role(user_id, role_id)
+        VALUES ((SELECT userId FROM u), (SELECT roleId FROM role))
       )
       INSERT INTO student(
         name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
         id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
         create_user, create_time, remark)
-      VALUES ($5, (SELECT userId FROM cte), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
-      on conflict(no) do update set name = excluded.name, user_id = excluded.user_id, school_id = excluded.school_id,
+      VALUES ($5, (SELECT userId FROM u), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      ON CONFLICT(no) do update set name = excluded.name, user_id = excluded.user_id, school_id = excluded.school_id,
       college_id = excluded.college_id, dep_id = excluded.dep_id, specialty_id = excluded.specialty_id, classes_id = excluded.classes_id,
       no = excluded.no, gender = excluded.gender, id_number = excluded.id_number, birthday = excluded.birthday,
       enter_date = excluded.enter_date, academic = excluded.academic, nation = excluded.nation, graduation_date = excluded.graduation_date,
@@ -243,7 +245,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
   override suspend fun studentImport(message: Message<JsonObject>) {
     val body = message.body()
     val students = body.getJsonArray("content")
-    val config = body.getJsonObject("config")
+    val config = body.getJsonObject("config", JsonObject())
     val createTime = LocalDateTime.now()
     val createUser = body.getString("createUser")
     val transaction = pool.beginAwait()
