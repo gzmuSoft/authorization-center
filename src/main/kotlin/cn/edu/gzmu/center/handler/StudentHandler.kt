@@ -255,4 +255,36 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
    * @apiSuccessExample {json} Success-response:
    *      HTTP/1.1 204 No Content
    */
+  /**
+   * @api {POST} /student/import student import
+   * @apiVersion 1.0.0
+   * @apiName StudentImport
+   * @apiDescription Import student.
+   * @apiGroup Student
+   * @apiUse Bearer
+   * @apiExample Example usage:
+   *      curl --location --request POST 'http://127.0.0.1:8889/student/import' \
+   *        --header 'Authorization: Bearer token'
+   *        --data-raw '{content: [
+   *                      "name": "test",
+   *                      "no": "20141414",
+   *                      "gender": "",
+   *                      "enterDate": "",
+   *                      "nation": 1,
+   *                      "academic": 1,
+   *                      "schoolId": 1,
+   *                      "collegeId": 1,
+   *                      "depId": 1,
+   *                      "specialtyId": 1,
+   *                      "classesId": 1,
+   *                      "sort": 1,
+   *                      "remark": 1,
+   *                      "birthday": "",
+   *                      "idNumber": ""
+   *                    ]}'
+   * @apiParam {Array}        content                 students
+   * @apiParam {JsonObject}   config                  config
+   * @apiSuccessExample {json} Success-response:
+   *      HTTP/1.1 204 No Content
+   */
 }

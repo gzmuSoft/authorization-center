@@ -100,7 +100,30 @@ class UserHandler(router: Router, private val eventBus: EventBus) : BaseHandler(
    * @apiSuccessExample {json} Success-response:
    *      HTTP/1.1 204 No Content
    */
-
+  /**
+   * @api {POST} /user/exist user exist by names
+   * @apiVersion 1.0.0
+   * @apiName UserExistByNames
+   * @apiDescription User update
+   * @apiGroup User
+   * @apiUse Bearer
+   * @apiExample Example usage:
+   *      curl --location --request POST 'http://127.0.0.1:8889/user/exist' \
+   *        --header 'Authorization: Bearer token'
+   *        --data-raw '["201607090211"]'
+   * @apiParam {Array}       names                     names
+   * @apiSuccessExample {json} Exists:
+   *      HTTP/1.1 200 Success
+   *      [
+   *        {
+   *          "id": 151,
+   *          "name": "201607090211"
+   *        }
+   *      ]
+   * @apiSuccessExample {json} Don't Exists:
+   *      HTTP/1.1 200 Success
+   *      []
+   */
   private fun userExist(context: RoutingContext) {
     val names = context.bodyAsJsonArray
     eventBus.request<JsonObject>(SysUser.ADDRESS_USER_EXIST, names) {

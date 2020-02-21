@@ -261,7 +261,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         )
       }
       transaction.preparedBatchAwait(
-        if (config.getBoolean("update") == true) STUDENT_USER_INSERT_UPDATE
+        if (config.getBoolean("update", false)) STUDENT_USER_INSERT_UPDATE
         else STUDENT_USER_INSERT_NOTHING, studentParam
       )
       transaction.commitAwait()
