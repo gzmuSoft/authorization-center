@@ -43,8 +43,7 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
     router.post("/student")
       .handler {
         Address.parameterHandler.requireJson(
-          it, "name", "no", "gender", "enterDate", "birthday", "idNumber",
-          "academic", "schoolId", "collegeId", "depId", "specialtyId", "classesId", "sort", "remark"
+          it, "name", "no", "gender", "schoolId", "collegeId", "depId", "specialtyId", "classesId", "sort"
         )
       }
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_ADD) }
@@ -284,6 +283,50 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
    *                    ]}'
    * @apiParam {Array}        content                 students
    * @apiParam {JsonObject}   config                  config
+   * @apiSuccessExample {json} Success-response:
+   *      HTTP/1.1 204 No Content
+   */
+  /**
+   * @api {POST} /student student add
+   * @apiVersion 1.0.0
+   * @apiName StudentAdd
+   * @apiDescription Add student.
+   * @apiGroup Student
+   * @apiUse Bearer
+   * @apiExample Example usage:
+   *      curl --location --request POST 'http://127.0.0.1:8889/student' \
+   *        --header 'Authorization: Bearer token'
+   *        --data-raw '{
+   *                      "name": "test",
+   *                      "no": "20141414",
+   *                      "gender": "",
+   *                      "enterDate": "",
+   *                      "nation": 1,
+   *                      "academic": 1,
+   *                      "schoolId": 1,
+   *                      "collegeId": 1,
+   *                      "depId": 1,
+   *                      "specialtyId": 1,
+   *                      "classesId": 1,
+   *                      "sort": 1,
+   *                      "remark": 1,
+   *                      "birthday": "",
+   *                      "idNumber": ""
+   *                    }'
+   * @apiParam {String}   name                 name
+   * @apiParam {String}   no                   no
+   * @apiParam {String}   gender               gender
+   * @apiParam {String}   enterDate            enter date
+   * @apiParam {String}   birthday             birthday
+   * @apiParam {String}   idNumber             id number
+   * @apiParam {String}   academic             academic
+   * @apiParam {String}   schoolId             school id
+   * @apiParam {String}   collegeId            college id
+   * @apiParam {String}   depId                department id
+   * @apiParam {String}   specialtyId          specialty id
+   * @apiParam {String}   classesId            classes id
+   * @apiParam {String}   sort                 sort
+   * @apiParam {String}   remark               remark
    * @apiSuccessExample {json} Success-response:
    *      HTTP/1.1 204 No Content
    */

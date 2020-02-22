@@ -217,13 +217,24 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
       val studentEditPermission = resource.find { res ->
         res.getString("url") == "/student/complete" && res.getString("method") == "PATCH"
       } != null
+      val studentAddPermission = resource.find { res ->
+        res.getString("url") == "/student" && res.getString("method") == "POST"
+      } != null
+      val studentImportPermission = resource.find { res ->
+        res.getString("url") == "/student/import" && res.getString("method") == "POST"
+      } != null
       val content = rowSet.map {
         it.toJsonObject<Student>()
           .put("userView", userViewPermission).put("userEdit", userEditPermission)
           .put("edit", studentEditPermission).put("resetPassword", userPasswordPermission)
       }
       log.debug("Success get page data: {}", count)
-      message.reply(jsonObjectOf("content" to content, "itemsLength" to count))
+      message.reply(
+        jsonObjectOf(
+          "content" to content, "itemsLength" to count,
+          "add" to studentAddPermission, "import" to studentImportPermission
+        )
+      )
     } catch (e: Exception) {
       message.fail(500, e.cause?.message)
       throw e
