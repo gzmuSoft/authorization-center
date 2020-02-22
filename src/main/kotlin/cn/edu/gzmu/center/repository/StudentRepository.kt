@@ -3,6 +3,7 @@ package cn.edu.gzmu.center.repository
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
 import cn.edu.gzmu.center.model.entity.Student
+import cn.edu.gzmu.center.model.entity.SysUser
 import cn.edu.gzmu.center.model.extension.addOptional
 import cn.edu.gzmu.center.model.extension.encodePassword
 import cn.edu.gzmu.center.model.extension.mapAs
@@ -52,6 +53,11 @@ interface StudentRepository {
   fun studentUpdateComplete(message: Message<JsonObject>)
 
   /**
+   * Student Add
+   */
+  fun studentAdd(message: Message<JsonObject>)
+
+  /**
    * Student import.
    * [message]:
    * content ---- student info
@@ -59,6 +65,7 @@ interface StudentRepository {
    * createUser ----  create user
    */
   suspend fun studentImport(message: Message<JsonObject>)
+
 }
 
 class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), StudentRepository {
@@ -88,7 +95,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     """.trimIndent()
     private val STUDENT_USER_INSERT_NOTHING = """
       WITH u as (
-        INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4)
+        INSERT INTO sys_user(name, password, phone, email, create_user, create_time) VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT(name) do nothing
         RETURNING id as userId
       ), role as (
@@ -101,14 +108,15 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
         id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
         create_user, create_time, remark)
-      VALUES ($5, (SELECT userId FROM u), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      VALUES ($7, (SELECT userId FROM u), $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
       ON CONFLICT(no) do nothing
       RETURNING id, name, no
     """.trimIndent()
     private val STUDENT_USER_INSERT_UPDATE = """
       WITH u as (
-        INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4)
-        ON CONFLICT(name) do update set password = excluded.password, is_enable = true
+        INSERT INTO sys_user(name, password, phone, email, create_user, create_time) VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT(name) do update set password = excluded.password, is_enable = true, phone = exclude.phone, email = exclude.email,
+        create_user = exclude.create_user, create_time = exclude.create_time
         RETURNING id as userId
       ), role as (
         SELECT id as roleId FROM sys_role WHERE name = 'ROLE_STUDENT'
@@ -120,7 +128,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         name, user_id, school_id, college_id, dep_id, specialty_id, classes_id, no, gender,
         id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
         create_user, create_time, remark)
-      VALUES ($5, (SELECT userId FROM u), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      VALUES ($7, (SELECT userId FROM u), $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
       ON CONFLICT(no) do update set name = excluded.name, user_id = excluded.user_id, school_id = excluded.school_id,
       college_id = excluded.college_id, dep_id = excluded.dep_id, specialty_id = excluded.specialty_id, classes_id = excluded.classes_id,
       no = excluded.no, gender = excluded.gender, id_number = excluded.id_number, birthday = excluded.birthday,
@@ -242,6 +250,24 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     }
   }
 
+  override fun studentAdd(message: Message<JsonObject>) {
+    val body = message.body()
+    val user = body.mapAs(SysUser.serializer())
+    val student = body.mapAs(Student.serializer())
+    val params = Tuple.of(
+      student.no, encodePassword(student.no!!), user.phone, user.email, user.createUser, user.createTime,
+      student.name, student.schoolId, student.collegeId, student.depId, student.specialtyId,
+      student.classesId, student.no, student.gender, student.idNumber, student.birthday,
+      student.enterDate, student.academic, student.nation, student.graduationDate,
+      student.graduateInstitution, student.createUser, student.createTime, student.remark
+    )
+    pool.preparedQuery(STUDENT_USER_INSERT_NOTHING, params) {
+      messageException(message, it)
+      log.debug("Success add student.")
+      message.reply("Success")
+    }
+  }
+
   override suspend fun studentImport(message: Message<JsonObject>) {
     val body = message.body()
     val students = body.getJsonArray("content")
@@ -255,7 +281,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         val student = it.mapAs(Student.serializer())
         val password = awaitBlocking { encodePassword(student.no!!) }
         Tuple.of(
-          student.no, password, createUser, createTime,
+          student.no, password, null, null, createUser, createTime,
           student.name, student.schoolId, student.collegeId, student.depId, student.specialtyId,
           student.classesId, student.no, student.gender, student.idNumber, student.birthday,
           student.enterDate, student.academic, student.nation, student.graduationDate,
