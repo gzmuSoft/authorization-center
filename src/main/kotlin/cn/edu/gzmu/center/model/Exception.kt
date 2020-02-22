@@ -17,7 +17,7 @@ class ForbiddenException(message: String?) :
 }
 
 class DatabaseException(message: String?) :
-  Throwable("服务器错误:${message ?: "数据异常"}") {
+  Throwable("资源错误:${message ?: "数据异常"}") {
   constructor() : this(null)
 }
 

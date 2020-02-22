@@ -74,7 +74,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
 
   companion object {
     private const val STUDENT_CLASS_ID =
-      "SELECT classes_id, specialty_id FROM student WHERE student.user_id = $1 AND student.is_enable = true"
+      "SELECT classes_id, specialty_id, dep_id FROM student WHERE student.user_id = $1 AND student.is_enable = true"
     private const val STUDENT_CLASSES_DEP =
       "SELECT id, name FROM sys_data WHERE parent_id = $1 and is_enable = true"
     private val STUDENT_USER_CLASS = """
@@ -96,7 +96,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     private val STUDENT_USER_INSERT_NOTHING = """
       WITH u as (
         INSERT INTO sys_user(name, password, phone, email, create_user, create_time) VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT(name) do nothing
+        ON CONFLICT(name) do update set name = excluded.name
         RETURNING id as userId
       ), role as (
         SELECT id as roleId FROM sys_role WHERE name = 'ROLE_STUDENT'

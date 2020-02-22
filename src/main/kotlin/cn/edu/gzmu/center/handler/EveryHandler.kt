@@ -19,17 +19,33 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 class EveryHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
   init {
     router.get("/base/sysData/type/:type")
-      .handler { handlerGet<Long, JsonArray>(it,
-        Every.ADDRESS_SYS_DATA_TYPE, this::dataType) }
+      .handler {
+        handlerGet<Long, JsonArray>(
+          it,
+          Every.ADDRESS_SYS_DATA_TYPE, this::dataType
+        )
+      }
     router.get("/base/sysData/types")
-      .handler { handlerGet<JsonArray, JsonObject>(it,
-        Every.ADDRESS_SYS_DATA_TYPES, this::dataTypes) }
+      .handler {
+        handlerGet<JsonArray, JsonObject>(
+          it,
+          Every.ADDRESS_SYS_DATA_TYPES, this::dataTypes
+        )
+      }
     router.get("/base/sysData/info/:id")
-      .handler { handlerGet<Long, JsonObject>(it,
-        Every.ADDRESS_SYS_DATA_NAME, this::dataInfo) }
+      .handler {
+        handlerGet<Long, JsonObject>(
+          it,
+          Every.ADDRESS_SYS_DATA_NAME, this::dataInfo
+        )
+      }
     router.get("/base/user/exist")
-      .handler { handlerGet<JsonObject, JsonObject>(it,
-        Every.ADDRESS_SYS_USER_EXIST, this::userExist) }
+      .handler {
+        handlerGet<JsonObject, JsonObject>(
+          it,
+          Every.ADDRESS_SYS_USER_EXIST, this::userExist
+        )
+      }
   }
 
   /**
@@ -125,7 +141,9 @@ class EveryHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
    *      { “exist”, true }
    */
   private fun userExist(context: RoutingContext): JsonObject {
-    val name = context.request().getParam("name") ?: ""
+    val name = context.request().getParam("name")
+      ?: context.request().getParam("no")
+      ?: ""
     val email = context.request().getParam("email") ?: ""
     val phone = context.request().getParam("phone") ?: ""
     return if (name.isBlank() && email.isBlank() && phone.isBlank()) {

@@ -15,7 +15,7 @@ class ParameterHandler {
   fun requireJson(context: RoutingContext, vararg keys: String) {
     val body = context.bodyAsJson
     for (key in keys) {
-      if (Objects.isNull(body.getValue(key))) {
+      if (!body.containsKey(key)) {
         context.fail(BadRequestException())
         return
       }
