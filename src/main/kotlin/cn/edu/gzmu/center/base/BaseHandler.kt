@@ -78,6 +78,12 @@ abstract class BaseHandler(private val eventBus: EventBus) {
     }
   }
 
+  fun <R> handlerGet(context: RoutingContext, address: String) {
+    eventBus.request<R>(address, null) {
+      handleResult<R>(context, it)
+    }
+  }
+
   protected fun paramId(context: RoutingContext): Long =
     context.request().getParam("id").toLong()
 

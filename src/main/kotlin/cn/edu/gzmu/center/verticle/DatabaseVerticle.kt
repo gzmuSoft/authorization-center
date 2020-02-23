@@ -41,6 +41,7 @@ class DatabaseVerticle : CoroutineVerticle() {
       systemRepository()
       dataRepository()
       userRepository()
+      clientRepository()
       log.info("Success start database verticle......")
       vertx.exceptionHandler {
         it.printStackTrace()
@@ -48,6 +49,11 @@ class DatabaseVerticle : CoroutineVerticle() {
     } catch (e: Exception) {
       log.error("Failed start database verticle!", e.cause)
     }
+  }
+
+  private fun clientRepository() {
+    val clientRepository: ClientRepository = ClientRepositoryImpl(pool)
+    eventBus.localConsumer<Unit>(Client.ADDRESS_CLIENT, clientRepository::client)
   }
 
   private suspend fun userRepository() {

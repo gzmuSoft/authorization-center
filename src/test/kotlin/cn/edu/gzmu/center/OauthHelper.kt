@@ -110,19 +110,22 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
   }
 
   protected fun noContentCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>) {
-    resultCheck(testContext, ar)
-    val response = ar.result()
-    testContext.verify {
-      Assertions.assertEquals(noContent, response.statusCode())
-      testContext.completeNow()
-    }
+    this.statusCheck(testContext, ar, HttpResponseStatus.NO_CONTENT)
   }
 
   protected fun createCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>) {
+    this.statusCheck(testContext, ar, HttpResponseStatus.CREATED)
+  }
+
+  protected fun okCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>) {
+    this.statusCheck(testContext, ar, HttpResponseStatus.OK)
+  }
+
+  private fun statusCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>, status: HttpResponseStatus) {
     resultCheck(testContext, ar)
     val response = ar.result()
     testContext.verify {
-      Assertions.assertEquals(created, response.statusCode())
+      Assertions.assertEquals(status.code(), response.statusCode())
       testContext.completeNow()
     }
   }
