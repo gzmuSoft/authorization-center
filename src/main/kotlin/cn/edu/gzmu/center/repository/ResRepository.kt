@@ -55,7 +55,7 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(pool), ResRe
     val type = body.getLong("type")
     val sqlGet = Sql("auth_center_res")
       .select(AuthCenterRes::class)
-      .whereEnable()
+      .whereLike("describe")
     when (type) {
       // Get menu —— name is route, url is menu name, method is menu icon, remark is mark
       1L -> sqlGet.and("remark IS NOT NULL")
@@ -68,9 +68,8 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(pool), ResRe
     var connection: SqlConnection? = null
     try {
       connection = pool.getConnectionAwait()
-      val countSql = sqlGet.like { "describe" }
       val count =
-        connection.preparedQueryAwait(countSql.count(), Tuple.of("%${body.getString("describe")}%"))
+        connection.preparedQueryAwait(sqlGet.count(), Tuple.of("%${body.getString("describe")}%"))
           .first().getLong("count")
       val sql = sqlGet
         .page(body.getString("sort"))

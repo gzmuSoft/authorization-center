@@ -123,6 +123,11 @@ class Sql(private val table: String) {
     return this
   }
 
+  fun whereLike(key: String): Sql {
+    sql += " WHERE $key LIKE $${index++} "
+    return this
+  }
+
   /**
    * Where condition if not null.
    */
