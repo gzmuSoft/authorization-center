@@ -30,6 +30,14 @@ class TeacherHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerPatch(it, Teacher.ADDRESS_TEACHER_UPDATE) }
+    router.post("/teacher")
+      .handler {
+        Address.parameterHandler.requireJson(
+          it, "name", "schoolId", "collegeId", "depId", "gender",
+          "idNumber", "isEnable", "phone", "email"
+        )
+      }
+      .handler { handlerCreate(it, Teacher.ADDRESS_TEACHER_ADD) }
   }
 
   private fun teacherPage(context: RoutingContext): JsonObject =

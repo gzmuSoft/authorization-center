@@ -2,8 +2,10 @@ package cn.edu.gzmu.center.repository
 
 import cn.edu.gzmu.center.base.BaseRepository
 import cn.edu.gzmu.center.model.Sql
+import cn.edu.gzmu.center.model.entity.SysUser
 import cn.edu.gzmu.center.model.entity.Teacher
 import cn.edu.gzmu.center.model.extension.addOptional
+import cn.edu.gzmu.center.model.extension.encodePassword
 import cn.edu.gzmu.center.model.extension.mapAs
 import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
@@ -33,6 +35,11 @@ interface TeacherRepository {
    * Teacher update
    */
   fun teacherUpdate(message: Message<JsonObject>)
+
+  /**
+   * Teacher add
+   */
+  fun teacherAdd(message: Message<JsonObject>)
 }
 
 class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), TeacherRepository {
@@ -45,7 +52,26 @@ class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), Teache
       gender = $6, birthday = $7, graduation_date = $8, work_date = $9, nation = $10,
       degree = $11, academic = $12, major = $13, prof_title = $14, prof_title_ass_date = $15,
       graduate_institution = $16, major_research = $17, subject_category = $18, id_number = $19,
-      is_academic_leader = $20, sort = $21, remark = $22, is_enable = $23 WHERE id = $1
+      is_academic_leader = $20, sort = $21, remark = $22, is_enable = $23, modify_time = $24,
+      modify_user = $25 WHERE id = $1
+    """.trimIndent()
+    private val TEACHER_INSERT = """
+      WITH u as (
+        INSERT INTO sys_user(name, password, phone, email, create_user, create_time)
+        VALUES ($25, $26, $27, $28, $29, $30)
+        ON CONFLICT(name) do update set name = excluded.name
+        RETURNING id as userId
+      ), role as (
+        SELECT id as roleId FROM sys_role WHERE name = 'ROLE_TEACHER'
+      ), userRes as (
+        INSERT INTO sys_user_role(user_id, role_id)
+        VALUES ((SELECT userId FROM u), (SELECT roleId FROM role))
+      )
+      INSERT INTO teacher(name, school_id, college_id, dep_id, gender, birthday, graduation_date,
+      work_date, nation, degree, academic, major, prof_title, prof_title_ass_date, graduate_institution,
+      major_research, subject_category, id_number, is_academic_leader, sort, remark, is_enable, create_time,
+      create_user, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
+      $19, $20, $21, $22, $23, $24, (SELECT userId FROM u))
     """.trimIndent()
   }
 
@@ -123,11 +149,32 @@ class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), Teache
       teacher.workDate, teacher.nation, teacher.degree, teacher.academic, teacher.major,
       teacher.profTitle, teacher.profTitleAssDate, teacher.graduateInstitution, teacher.majorResearch,
       teacher.subjectCategory, teacher.idNumber, teacher.isAcademicLeader, teacher.sort, teacher.remark,
-      teacher.isEnable
+      teacher.isEnable, teacher.modifyTime, teacher.modifyUser
     )
     pool.preparedQuery(TEACHER_UPDATE, params) {
       messageException(message, it)
       log.debug("Success update teacher: {}", teacher.id)
+      message.reply("Success")
+    }
+  }
+
+  override fun teacherAdd(message: Message<JsonObject>) {
+    val body = message.body()
+    val teacher = body.mapAs(Teacher.serializer())
+    val user = body.mapAs(SysUser.serializer())
+    val params = Tuple.of(
+      teacher.name, teacher.schoolId, teacher.collegeId, teacher.depId,
+      teacher.gender, teacher.birthday, teacher.graduationDate, teacher.workDate,
+      teacher.nation, teacher.degree, teacher.academic, teacher.major, teacher.profTitle,
+      teacher.profTitleAssDate, teacher.graduateInstitution, teacher.majorResearch,
+      teacher.subjectCategory, teacher.idNumber, teacher.isAcademicLeader, teacher.sort,
+      teacher.remark, teacher.isEnable, teacher.createTime, teacher.createUser,
+      user.phone, encodePassword(teacher.idNumber ?: "0"), user.phone, user.email,
+      user.createUser, user.createTime
+    )
+    pool.preparedQuery(TEACHER_INSERT, params) {
+      messageException(message, it)
+      log.debug("Success add a teacher: {}", teacher.name)
       message.reply("Success")
     }
   }

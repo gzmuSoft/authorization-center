@@ -40,7 +40,7 @@ data class Teacher(
   val resume: String? = null,
   val subjectCategory: String? = null,
   val idNumber: String? = null,
-  val isAcademicLeader: Boolean? = null,
+  val isAcademicLeader: Boolean = false,
   val sort: Long = 1,
   val createUser: String? = null,
   @Serializable(with = LocalDateTimeSerializer::class)
@@ -54,5 +54,6 @@ data class Teacher(
   companion object {
     const val ADDRESS_TEACHER_PAGE = "address_teacher_page"
     const val ADDRESS_TEACHER_UPDATE = "address_teacher_update"
+    const val ADDRESS_TEACHER_ADD = "address_teacher_add"
   }
 }
