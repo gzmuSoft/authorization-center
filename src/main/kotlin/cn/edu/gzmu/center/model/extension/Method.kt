@@ -7,6 +7,7 @@ import com.google.common.base.CaseFormat
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
+import io.vertx.kotlin.coroutines.awaitBlocking
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 import kotlinx.serialization.DeserializationStrategy

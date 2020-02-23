@@ -149,7 +149,8 @@ class StudentHandlerTest : OauthHelper() {
             "specialtyId":null,
             "classesId":null,
             "academicName":"高中",
-            "nationName":"苗族"
+            "nationName":"苗族",
+            "phone": "156${(10000000..99999999).random()}"
           },
           {
             "school":"贵州民族大学",
@@ -174,7 +175,8 @@ class StudentHandlerTest : OauthHelper() {
             "specialtyId":null,
             "classesId":null,
             "academicName":"高中",
-            "nationName":"苗族"
+            "nationName":"苗族",
+            "phone": "156${(10000000..99999999).random()}"
           }
         ]
       }

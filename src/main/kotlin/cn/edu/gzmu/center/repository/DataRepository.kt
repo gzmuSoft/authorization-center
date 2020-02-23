@@ -59,7 +59,7 @@ interface DataRepository {
   suspend fun dataPage(message: Message<JsonObject>)
 }
 
-class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(), DataRepository {
+class DataRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), DataRepository {
   private val log: Logger = LoggerFactory.getLogger(DataRepositoryImpl::class.java.name)
   private val table = "sys_data"
   override fun dataType(message: Message<Long>) {

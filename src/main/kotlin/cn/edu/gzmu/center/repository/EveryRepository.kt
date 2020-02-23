@@ -50,7 +50,7 @@ interface EveryRepository {
 
 }
 
-class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(),
+class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(pool),
   EveryRepository {
   private val log: Logger = LoggerFactory.getLogger(EveryRepositoryImpl::class.java.name)
 

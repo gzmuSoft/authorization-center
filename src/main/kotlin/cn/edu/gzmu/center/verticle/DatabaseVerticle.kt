@@ -70,6 +70,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer<JsonObject>(Teacher.ADDRESS_TEACHER_PAGE) { launch { teacherRepository.teacherPage(it) } }
     eventBus.localConsumer<JsonObject>(Teacher.ADDRESS_TEACHER_UPDATE, teacherRepository::teacherUpdate)
     eventBus.localConsumer<JsonObject>(Teacher.ADDRESS_TEACHER_ADD, teacherRepository::teacherAdd)
+    eventBus.localConsumer<JsonObject>(Teacher.ADDRESS_TEACHER_IMPORT) { launch { teacherRepository.teacherImport(it) } }
   }
 
   private suspend fun dataRepository() {

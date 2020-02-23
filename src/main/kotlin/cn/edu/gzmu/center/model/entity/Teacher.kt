@@ -55,5 +55,6 @@ data class Teacher(
     const val ADDRESS_TEACHER_PAGE = "address_teacher_page"
     const val ADDRESS_TEACHER_UPDATE = "address_teacher_update"
     const val ADDRESS_TEACHER_ADD = "address_teacher_add"
+    const val ADDRESS_TEACHER_IMPORT = "address_teacher_import"
   }
 }

@@ -17,10 +17,13 @@ import io.vertx.kotlin.core.json.jsonObjectOf
  * @date 2020/2/22 下午2:28
  */
 class TeacherHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
+  companion object {
+    private const val RESOURCE = "/teacher"
+  }
   init {
-    router.get("/teacher")
+    router.get(RESOURCE)
       .handler { handlerPage(it, Teacher.ADDRESS_TEACHER_PAGE, this::teacherPage) }
-    router.patch("/teacher")
+    router.patch(RESOURCE)
       .handler {
         Address.parameterHandler.requireJson(
           it, "id", "name", "schoolId",
@@ -30,7 +33,7 @@ class TeacherHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerPatch(it, Teacher.ADDRESS_TEACHER_UPDATE) }
-    router.post("/teacher")
+    router.post(RESOURCE)
       .handler {
         Address.parameterHandler.requireJson(
           it, "name", "schoolId", "collegeId", "depId", "gender",
@@ -38,6 +41,8 @@ class TeacherHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerCreate(it, Teacher.ADDRESS_TEACHER_ADD) }
+    router.post("${RESOURCE}/import")
+      .handler { handlerCreate(it, Teacher.ADDRESS_TEACHER_IMPORT) }
   }
 
   private fun teacherPage(context: RoutingContext): JsonObject =

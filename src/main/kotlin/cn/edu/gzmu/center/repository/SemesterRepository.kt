@@ -41,7 +41,7 @@ interface SemesterRepository {
   fun semesterCreate(message: Message<JsonObject>)
 }
 
-class SemesterRepositoryImpl(private val pool: PgPool) : BaseRepository(), SemesterRepository {
+class SemesterRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), SemesterRepository {
   private val log: Logger = LoggerFactory.getLogger(SemesterRepositoryImpl::class.java.name)
   private val table = "semester"
   override suspend fun semesterSchool(message: Message<JsonObject>) {

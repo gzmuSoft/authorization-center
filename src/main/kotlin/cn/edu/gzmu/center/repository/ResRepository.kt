@@ -47,7 +47,7 @@ interface ResRepository {
   fun resDelete(message: Message<Long>)
 }
 
-class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(), ResRepository {
+class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(pool), ResRepository {
   private val log: Logger = LoggerFactory.getLogger(ResRepositoryIImpl::class.java.name)
   private val table = "auth_center_res"
   override suspend fun res(message: Message<JsonObject>) {

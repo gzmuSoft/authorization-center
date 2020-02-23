@@ -17,12 +17,15 @@ import io.vertx.kotlin.core.json.jsonObjectOf
  * @date 2020/2/14 下午8:29
  */
 class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
+  companion object {
+    private const val RESOURCE = "/student"
+  }
   init {
-    router.get("/student/me")
+    router.get("${RESOURCE}/me")
       .handler {
         handlerGet<JsonObject, JsonObject>(it, Student.ADDRESS_STUDENT_ME, this::studentMe)
       }
-    router.patch("/student")
+    router.patch(RESOURCE)
       .handler {
         Address.parameterHandler.requireJson(
           // Only update these fields.
@@ -30,9 +33,9 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerPatch(it, Student.ADDRESS_STUDENT_UPDATE) }
-    router.get("/student")
+    router.get(RESOURCE)
       .handler { handlerPage(it, Student.ADDRESS_STUDENT_PAGE, this::studentPage) }
-    router.patch("/student/complete")
+    router.patch("${RESOURCE}/complete")
       .handler {
         Address.parameterHandler.requireJson(
           it, "id", "name", "no", "gender", "enterDate", "birthday", "idNumber",
@@ -40,14 +43,14 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerPatch(it, Student.ADDRESS_STUDENT_UPDATE_COMPLETE) }
-    router.post("/student")
+    router.post(RESOURCE)
       .handler {
         Address.parameterHandler.requireJson(
           it, "name", "no", "gender", "schoolId", "collegeId", "depId", "specialtyId", "classesId", "sort"
         )
       }
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_ADD) }
-    router.post("/student/import")
+    router.post("${RESOURCE}/import")
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_IMPORT) }
   }
   /**

@@ -41,7 +41,7 @@ interface RoleRepository {
   fun roleUpdate(message: Message<JsonObject>)
 }
 
-class RoleRepositoryImpl(private val pool: PgPool) : BaseRepository(), RoleRepository {
+class RoleRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), RoleRepository {
   private val log: Logger = LoggerFactory.getLogger(RoleRepositoryImpl::class.java.name)
   override fun roleParent(message: Message<Long>) {
     val parentId = message.body()

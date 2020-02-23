@@ -18,6 +18,7 @@ import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 
 /**
  * .
@@ -40,9 +41,18 @@ interface TeacherRepository {
    * Teacher add
    */
   fun teacherAdd(message: Message<JsonObject>)
+
+  /**
+   * Teacher import
+   * [message]:
+   * content ---- student info
+   * config  ---- other config
+   * createUser ----  create user
+   */
+  suspend fun teacherImport(message: Message<JsonObject>)
 }
 
-class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), TeacherRepository {
+class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), TeacherRepository {
   private val table = "teacher"
   private val log: Logger = LoggerFactory.getLogger(TeacherRepositoryImpl::class.java.name)
 
@@ -55,7 +65,7 @@ class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), Teache
       is_academic_leader = $20, sort = $21, remark = $22, is_enable = $23, modify_time = $24,
       modify_user = $25 WHERE id = $1
     """.trimIndent()
-    private val TEACHER_INSERT = """
+    private val TEACHER_INSERT_NOTHING = """
       WITH u as (
         INSERT INTO sys_user(name, password, phone, email, create_user, create_time)
         VALUES ($25, $26, $27, $28, $29, $30)
@@ -71,7 +81,34 @@ class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), Teache
       work_date, nation, degree, academic, major, prof_title, prof_title_ass_date, graduate_institution,
       major_research, subject_category, id_number, is_academic_leader, sort, remark, is_enable, create_time,
       create_user, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-      $19, $20, $21, $22, $23, $24, (SELECT userId FROM u))
+      $19, $20, $21, $22, $23, $24, (SELECT userId FROM u)) ON CONFLICT(id_number) DO NOTHING
+    """.trimIndent()
+    private val TEACHER_INSERT_UPDATE = """
+      WITH u as (
+        INSERT INTO sys_user(name, password, phone, email, create_user, create_time)
+        VALUES ($25, $26, $27, $28, $29, $30)
+        ON CONFLICT(name) do update set password = excluded.password, is_enable = true, phone = excluded.phone, email = excluded.email,
+        create_user = excluded.create_user, create_time = excluded.create_time
+        RETURNING id as userId
+      ), role as (
+        SELECT id as roleId FROM sys_role WHERE name = 'ROLE_TEACHER'
+      ), userRes as (
+        INSERT INTO sys_user_role(user_id, role_id)
+        VALUES ((SELECT userId FROM u), (SELECT roleId FROM role))
+      )
+      INSERT INTO teacher(name, school_id, college_id, dep_id, gender, birthday, graduation_date,
+      work_date, nation, degree, academic, major, prof_title, prof_title_ass_date, graduate_institution,
+      major_research, subject_category, id_number, is_academic_leader, sort, remark, is_enable, create_time,
+      create_user, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
+      $19, $20, $21, $22, $23, $24, (SELECT userId FROM u)) ON CONFLICT(id_number) DO UPDATE SET name = excluded.name,
+      user_id = excluded.user_id, school_id = excluded.school_id, college_id = excluded.college_id, dep_id = excluded.dep_id,
+      gender = excluded.gender, birthday = excluded.birthday, graduation_date = excluded.graduation_date,
+      work_date = excluded.work_date, nation = excluded.nation, degree = excluded.degree, academic = excluded.academic,
+      major = excluded.major, prof_title = excluded.prof_title, prof_title_ass_date = excluded.prof_title_ass_date,
+      graduate_institution = excluded.graduate_institution, major_research = excluded.major_research,
+      subject_category = excluded.subject_category, id_number = excluded.id_number, sort = excluded.sort,
+      is_academic_leader = excluded.is_academic_leader, remark = excluded.remark, is_enable = true,
+      modify_time = excluded.create_time, modify_user = excluded.create_user
     """.trimIndent()
   }
 
@@ -172,10 +209,32 @@ class TeacherRepositoryImpl(private val pool: PgPool) : BaseRepository(), Teache
       user.phone, encodePassword(teacher.idNumber ?: "0"), user.phone, user.email,
       user.createUser, user.createTime
     )
-    pool.preparedQuery(TEACHER_INSERT, params) {
+    pool.preparedQuery(TEACHER_INSERT_NOTHING, params) {
       messageException(message, it)
       log.debug("Success add a teacher: {}", teacher.name)
       message.reply("Success")
+    }
+  }
+
+  override suspend fun teacherImport(message: Message<JsonObject>) {
+    val createTime = LocalDateTime.now()
+    import(message, TEACHER_INSERT_NOTHING, TEACHER_INSERT_UPDATE) {content, createUser ->
+      content.map {
+        it as JsonObject
+        val teacher = it.mapAs(Teacher.serializer())
+        val phone = it.getString("phone")
+        val email = it.getString("email")
+        Tuple.of(
+          teacher.name, teacher.schoolId, teacher.collegeId, teacher.depId,
+          teacher.gender, teacher.birthday, teacher.graduationDate, teacher.workDate,
+          teacher.nation, teacher.degree, teacher.academic, teacher.major, teacher.profTitle,
+          teacher.profTitleAssDate, teacher.graduateInstitution, teacher.majorResearch,
+          teacher.subjectCategory, teacher.idNumber, teacher.isAcademicLeader, teacher.sort,
+          teacher.remark, teacher.isEnable, teacher.createTime, createUser,
+          phone, encodePassword(teacher.idNumber ?: "0"), phone, email,
+          createUser, createTime
+        )
+      }
     }
   }
 

@@ -11,7 +11,6 @@ import cn.edu.gzmu.center.model.extension.toJsonObject
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
-import io.vertx.kotlin.coroutines.awaitBlocking
 import io.vertx.kotlin.sqlclient.*
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.SqlConnection
@@ -68,7 +67,7 @@ interface StudentRepository {
 
 }
 
-class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), StudentRepository {
+class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), StudentRepository {
   private val log: Logger = LoggerFactory.getLogger(StudentRepositoryImpl::class.java.name)
   private val table = "student"
 
@@ -109,7 +108,7 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
         create_user, create_time, remark)
       VALUES ($7, (SELECT userId FROM u), $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
-      ON CONFLICT(no) do nothing
+      ON CONFLICT(no) DO NOTHING
       RETURNING id, name, no
     """.trimIndent()
     private val STUDENT_USER_INSERT_UPDATE = """
@@ -129,11 +128,11 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
         id_number, birthday, enter_date, academic, nation, graduation_date, graduate_institution,
         create_user, create_time, remark)
       VALUES ($7, (SELECT userId FROM u), $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
-      ON CONFLICT(no) do update set name = excluded.name, user_id = excluded.user_id, school_id = excluded.school_id,
+      ON CONFLICT(no) DO UPDATE SET name = excluded.name, user_id = excluded.user_id, school_id = excluded.school_id,
       college_id = excluded.college_id, dep_id = excluded.dep_id, specialty_id = excluded.specialty_id, classes_id = excluded.classes_id,
       no = excluded.no, gender = excluded.gender, id_number = excluded.id_number, birthday = excluded.birthday,
       enter_date = excluded.enter_date, academic = excluded.academic, nation = excluded.nation, graduation_date = excluded.graduation_date,
-      graduate_institution = excluded.graduate_institution, create_user = excluded.create_user, create_time = excluded.create_time,
+      graduate_institution = excluded.graduate_institution, modify_user = excluded.create_user, modify_time = excluded.create_time,
       remark = excluded.remark, is_enable = true RETURNING id, name, no
     """.trimIndent()
   }
@@ -266,7 +265,8 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
     val user = body.mapAs(SysUser.serializer())
     val student = body.mapAs(Student.serializer())
     val params = Tuple.of(
-      student.no, encodePassword(student.no!!), user.phone, user.email, user.createUser, user.createTime,
+      user.phone, encodePassword(student.idNumber ?: "0"),
+      user.phone, user.email, user.createUser, user.createTime,
       student.name, student.schoolId, student.collegeId, student.depId, student.specialtyId,
       student.classesId, student.no, student.gender, student.idNumber, student.birthday,
       student.enterDate, student.academic, student.nation, student.graduationDate,
@@ -280,35 +280,21 @@ class StudentRepositoryImpl(private val pool: PgPool) : BaseRepository(), Studen
   }
 
   override suspend fun studentImport(message: Message<JsonObject>) {
-    val body = message.body()
-    val students = body.getJsonArray("content")
-    val config = body.getJsonObject("config", JsonObject())
     val createTime = LocalDateTime.now()
-    val createUser = body.getString("createUser")
-    val transaction = pool.beginAwait()
-    try {
-      val studentParam = students.map {
+    import(message, STUDENT_USER_INSERT_NOTHING, STUDENT_USER_INSERT_UPDATE) { content, createUser ->
+      content.map {
         it as JsonObject
         val student = it.mapAs(Student.serializer())
-        val password = awaitBlocking { encodePassword(student.no!!) }
+        val phone = it.getString("phone")
+        val email = it.getString("email")
         Tuple.of(
-          student.no, password, null, null, createUser, createTime,
+          phone, encodePassword(student.idNumber ?: "0"), phone, email, createUser, createTime,
           student.name, student.schoolId, student.collegeId, student.depId, student.specialtyId,
           student.classesId, student.no, student.gender, student.idNumber, student.birthday,
           student.enterDate, student.academic, student.nation, student.graduationDate,
           student.graduateInstitution, createUser, createTime, student.remark
         )
       }
-      transaction.preparedBatchAwait(
-        if (config.getBoolean("update", false)) STUDENT_USER_INSERT_UPDATE
-        else STUDENT_USER_INSERT_NOTHING, studentParam
-      )
-      transaction.commitAwait()
-      log.debug("Success import student.")
-      message.reply("Success")
-    } catch (e: Exception) {
-      message.fail(500, e.cause?.message)
-      throw e
     }
   }
 

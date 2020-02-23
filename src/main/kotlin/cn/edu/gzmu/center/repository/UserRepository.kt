@@ -48,7 +48,7 @@ interface UserRepository {
   fun userExist(message: Message<JsonArray>)
 }
 
-class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(), UserRepository {
+class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), UserRepository {
   private val log: Logger = LoggerFactory.getLogger(UserRepositoryImpl::class.java.name)
   private val table = "sys_user"
 

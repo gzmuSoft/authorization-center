@@ -68,7 +68,7 @@ interface MeRepository {
   fun meInfoUpdate(message: Message<JsonObject>)
 }
 
-class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(),
+class MeRepositoryImpl(private val pool: PgPool) : BaseRepository(pool),
   MeRepository {
   private val log: Logger = LoggerFactory.getLogger(MeRepositoryImpl::class.java.name)
 
