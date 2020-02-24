@@ -1,6 +1,7 @@
 package cn.edu.gzmu.center.repository
 
 import cn.edu.gzmu.center.base.BaseRepository
+import cn.edu.gzmu.center.model.entity.SysRole
 import cn.edu.gzmu.center.model.entity.SysUser
 import cn.edu.gzmu.center.model.extension.encodePassword
 import cn.edu.gzmu.center.model.extension.mapAs
@@ -9,8 +10,7 @@ import cn.edu.gzmu.center.model.extension.toTypeArray
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.sqlclient.getConnectionAwait
-import io.vertx.kotlin.sqlclient.preparedQueryAwait
+import io.vertx.kotlin.sqlclient.*
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.SqlConnection
 import io.vertx.sqlclient.Tuple
@@ -29,7 +29,7 @@ interface UserRepository {
   /**
    * Get user by Id
    */
-  fun userOne(message: Message<Long>)
+  suspend fun userOne(message: Message<Long>)
 
   /**
    * Get user by Id
@@ -39,7 +39,7 @@ interface UserRepository {
   /**
    * Update user
    */
-  fun userUpdate(message: Message<JsonObject>)
+  suspend fun userUpdate(message: Message<JsonObject>)
 
   /**
    * user exist
@@ -55,23 +55,40 @@ class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), UserR
   companion object {
     const val USER_UPDATE =
       "UPDATE sys_user SET name = $1, email = $2, phone = $3, modify_time = $4, modify_user = $5 WHERE id = $6"
-    const val USER_INSERT =
-      "INSERT INTO sys_user(name, password, create_user, create_time) VALUES ($1, $2, $3, $4) RETURNING id, name"
     const val USER_EXIST =
       "SELECT id, name FROM sys_user WHERE name = any ($1)"
+    private val USER_ONE_ROLE = """
+      SELECT sr.*
+      FROM sys_user_role sur
+      LEFT JOIN sys_role sr on sur.role_id = sr.id
+      WHERE sur.is_enable = true
+      AND sr.is_enable = true
+      AND sur.user_id = $1
+    """.trimIndent()
+    private const val USER_ROLE_DELETE =
+      "UPDATE sys_user_role SET is_enable = false WHERE user_id = $1 AND role_id = $2"
+    private const val USER_ROLE_ADD =
+      "INSERT INTO sys_user_role(user_id, role_id) VALUES ($1, $2)"
   }
 
-  override fun userOne(message: Message<Long>) {
-    pool.preparedQuery("SELECT * FROM $table WHERE id = $1", Tuple.of(message.body())) {
-      messageException(message, it)
-      if (it.result().count() == 0) {
+  override suspend fun userOne(message: Message<Long>) {
+    val userId = message.body()
+    try {
+      val userRow = pool.preparedQueryAwait("SELECT * FROM $table WHERE id = $1", Tuple.of(userId))
+      if (userRow.count() == 0) {
         message.fail(404, "暂无此用户信息")
-        return@preparedQuery
+        return
       }
-      val user = it.result().first().toJsonObject<SysUser>()
-      log.debug("Success get user: {}", user)
+      val user = userRow.first().toJsonObject<SysUser>()
+      val roles = pool.preparedQueryAwait(USER_ONE_ROLE, Tuple.of(userId)).map { it.toJsonObject<SysRole>() }
       user.remove("password")
+      user.put("roles", roles)
+      user.put("roleIds", roles.map { it.getLong("id") })
+      log.debug("Success get user: {}", user.getString("name"))
       message.reply(user)
+    } catch (e: Exception) {
+      message.fail(500, e.cause?.message)
+      throw e
     }
   }
 
@@ -106,16 +123,30 @@ class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), UserR
     }
   }
 
-  override fun userUpdate(message: Message<JsonObject>) {
+  override suspend fun userUpdate(message: Message<JsonObject>) {
     val body = message.body()
     val user = body.mapAs(SysUser.serializer())
-    pool.preparedQuery(
-      USER_UPDATE,
-      Tuple.of(user.name, user.email, user.phone, user.modifyTime, user.modifyUser, user.id)
-    ) {
-      messageException(message, it)
-      log.debug("Success update user info: {}", user)
+    val transaction = pool.beginAwait()
+    try {
+      transaction.preparedQueryAwait(
+        USER_UPDATE,
+        Tuple.of(user.name, user.email, user.phone, user.modifyTime, user.modifyUser, user.id)
+      )
+      // See cn.edu.gzmu.center.other.JsonTest.listTest
+      val roles = body.getJsonArray("roleIds").toList()
+      val existRoles = transaction.preparedQueryAwait(USER_ONE_ROLE, Tuple.of(user.id))
+        .map { it.getLong("id") }
+      // Delete user role association
+      val deleteParams = existRoles.subtract(roles).map { Tuple.of(user.id, it) }
+      transaction.preparedBatchAwait(USER_ROLE_DELETE, deleteParams)
+      // Add user role association
+      val addParams = roles.subtract(existRoles).map { Tuple.of(user.id, it) }
+      transaction.preparedBatchAwait(USER_ROLE_ADD, addParams)
+      transaction.commitAwait()
       message.reply("Success")
+    } catch (e: Exception) {
+      message.fail(500, e.cause?.message)
+      throw e
     }
   }
 

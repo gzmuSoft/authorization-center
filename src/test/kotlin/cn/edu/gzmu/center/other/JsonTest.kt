@@ -55,4 +55,16 @@ internal class JsonTest {
     println(user::name.get())
     println(user::name.name)
   }
+
+  @Test
+  internal fun listTest() {
+    val roles = listOf(1, 2, 3, 4)
+    val existRoles = listOf(1, 2, 5, 6)
+    // Don't change
+    println(existRoles.intersect(roles))
+    // Need delete
+    println(existRoles.subtract(roles))
+    // Need add
+    println(roles.subtract(existRoles))
+  }
 }
