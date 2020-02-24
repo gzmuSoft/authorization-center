@@ -7,7 +7,6 @@ import com.google.common.base.CaseFormat
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
-import io.vertx.kotlin.coroutines.awaitBlocking
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 import kotlinx.serialization.DeserializationStrategy
@@ -84,5 +83,5 @@ object KotlinJson {
  * if [password] length less then 6, return 000000
  */
 fun encodePassword(password: String): String =
-  if (password.length < 6) "000000"
+  if (password.length < 6) BCrypt.hashpw("000000", BCrypt.gensalt(Address.LOG_ROUNDS))
   else BCrypt.hashpw(password.substring(password.length - 6), BCrypt.gensalt(Address.LOG_ROUNDS))

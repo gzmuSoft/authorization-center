@@ -38,5 +38,6 @@ data class Client(
 ) {
   companion object {
     const val ADDRESS_CLIENT = "address_client"
+    const val ADDRESS_CLIENT_POST = "address_client_post"
   }
 }

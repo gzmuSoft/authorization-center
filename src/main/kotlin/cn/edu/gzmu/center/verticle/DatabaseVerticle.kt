@@ -54,6 +54,7 @@ class DatabaseVerticle : CoroutineVerticle() {
   private fun clientRepository() {
     val clientRepository: ClientRepository = ClientRepositoryImpl(pool)
     eventBus.localConsumer<Unit>(Client.ADDRESS_CLIENT, clientRepository::client)
+    eventBus.localConsumer<JsonObject>(Client.ADDRESS_CLIENT_POST, clientRepository::clientUpdate)
   }
 
   private suspend fun userRepository() {
