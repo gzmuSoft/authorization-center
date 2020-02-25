@@ -19,7 +19,7 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
   init {
     router.get("/res")
       // Must have these params.
-      .handler { Address.parameterHandler.requireParam(it, "page", "size", "describe", "type") }
+      .handler { Address.parameterHandler.requireParam(it, "page", "describe", "type") }
       .handler { handlerPage(it, AuthCenterRes.ADDRESS_RES, this::res) }
     router.patch("/res")
       .handler { Address.parameterHandler.requireJson(it, "id") }
