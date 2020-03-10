@@ -33,6 +33,12 @@ abstract class BaseRepository(private val pool: PgPool) {
     }
   }
 
+  @Throws(Exception::class)
+  fun <T> messageException(message: Message<T>, ar: Throwable) {
+    message.fail(500, ar.message)
+    throw ar
+  }
+
   protected suspend fun import(
     message: Message<JsonObject>,
     nothing: String,

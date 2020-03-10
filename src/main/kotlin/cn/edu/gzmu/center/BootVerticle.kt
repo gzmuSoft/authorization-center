@@ -41,10 +41,8 @@ class BootVerticle : AbstractVerticle() {
         .reduce { t: Future<String>, u: Future<String> ->
           t.compose { u }
         }.orElse(future)
-        .setHandler {
-          if (it.succeeded()) promise.complete()
-          else promise.fail(it.cause())
-        }
+        .onSuccess { promise.complete() }
+        .onFailure { promise.fail(it.cause) }
 
     } catch (t: Throwable) {
       promise.fail(t)

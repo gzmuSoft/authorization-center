@@ -86,8 +86,9 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
   fun deploy(vertx: Vertx, testContext: VertxTestContext) {
     val web = vertx.deployVerticle(WebVerticle(), DeploymentOptions().setConfig(webConfig))
     val database = vertx.deployVerticle(DatabaseVerticle(), DeploymentOptions().setConfig(databaseConfig))
-    CompositeFuture.all(web, database).handler = testContext.succeeding {
-      testContext.completeNow()
+
+    CompositeFuture.all(web, database).onSuccess {
+      TODO("Waiting for fixed next handler.")
     }
   }
 
@@ -121,7 +122,11 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
     this.statusCheck(testContext, ar, HttpResponseStatus.OK)
   }
 
-  private fun statusCheck(testContext: VertxTestContext, ar: AsyncResult<HttpResponse<Buffer>>, status: HttpResponseStatus) {
+  private fun statusCheck(
+    testContext: VertxTestContext,
+    ar: AsyncResult<HttpResponse<Buffer>>,
+    status: HttpResponseStatus
+  ) {
     resultCheck(testContext, ar)
     val response = ar.result()
     testContext.verify {

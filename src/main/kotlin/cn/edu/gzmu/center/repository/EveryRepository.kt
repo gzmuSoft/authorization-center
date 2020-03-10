@@ -97,15 +97,15 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(pool),
       messageException(message, it)
       val result = jsonObjectOf()
       it.result().map { row ->
-        jsonObjectOf(
-          "id" to row.getLong("id"),
-          "name" to row.getString("name"),
-          "brief" to row.getString("brief"),
-          "type" to row.getLong("type"),
-          "parentId" to row.getLong("parent_id"),
-          "sort" to row.getLong("sort")
-        )
-      }.groupBy { row -> row.getLong("type") }
+          jsonObjectOf(
+            "id" to row.getLong("id"),
+            "name" to row.getString("name"),
+            "brief" to row.getString("brief"),
+            "type" to row.getLong("type"),
+            "parentId" to row.getLong("parent_id"),
+            "sort" to row.getLong("sort")
+          )
+        }.groupBy { row -> row.getLong("type") }
         .forEach { (key, value) ->
           result.put(key.toString(), value.sortedBy { ele -> ele.getLong("sort") })
         }
@@ -143,11 +143,12 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(pool),
       if (!name.isBlank()) pool.preparedQuery("$USER_COUNT AND name = $1", Tuple.of(name))
       else if (!email.isBlank()) pool.preparedQuery("$USER_COUNT AND email = $1", Tuple.of(email))
       else pool.preparedQuery("$USER_COUNT AND phone = $1", Tuple.of(phone))
-    future.setHandler {
-      messageException(message, it)
-      val count = it.result().first().getLong("count")
-      log.debug("Success get match count: {}", count)
-      message.reply(jsonObjectOf("exist" to (count > 0)))
-    }
+    future
+      .onSuccess {
+        val count = it.first().getLong("count")
+        log.debug("Success get match count: {}", count)
+        message.reply(jsonObjectOf("exist" to (count > 0)))
+      }
+      .onFailure { messageException(message, it) }
   }
 }

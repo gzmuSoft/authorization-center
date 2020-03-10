@@ -10,6 +10,7 @@ import io.vertx.kotlin.core.json.get
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import org.mindrot.jbcrypt.BCrypt
@@ -72,6 +73,7 @@ internal fun Tuple.addOrNull(value: Any?): Tuple =
  */
 object KotlinJson {
 
+  @OptIn(UnstableDefault::class)
   private val json = Json(JsonConfiguration(strictMode = false))
 
   fun json() = json

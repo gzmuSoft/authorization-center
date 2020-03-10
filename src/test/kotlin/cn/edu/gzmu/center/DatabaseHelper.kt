@@ -25,7 +25,7 @@ open class DatabaseHelper {
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     vertx.deployVerticle(DatabaseVerticle(), DeploymentOptions().setConfig(config),
-      testContext.succeeding<String> {
+      testContext.succeeding {
         eventBus = vertx.eventBus()
         testContext.completeNow()
       })
