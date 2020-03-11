@@ -78,5 +78,5 @@ tasks.withType<Test> {
 
 vertx {
   mainVerticle = "cn.edu.gzmu.center.BootVerticle"
-  vertxVersion = "4.0.0-SNAPSHOT"
+  vertxVersion = "4.0.0-milestone4"
 }

@@ -356,7 +356,7 @@ class OauthHandler(
         .find { res ->
           // url match.
           matcher.match(res.getString("url") ?: "", uri)
-            && method.name() == res.getString("method") // uri and method must match.
+            && method.name == res.getString("method") // uri and method must match.
             && (res.getString("role") == "ROLE_PUBLIC" // If this resource is public, everyone can access.
             || roles.contains(res.getString("role"))) // If this resource need authentication, the role must match.
         }

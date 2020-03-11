@@ -14,10 +14,6 @@ import io.vertx.ext.web.client.WebClientOptions
 import io.vertx.ext.web.client.WebClientSession
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.ext.web.client.sendFormAwait
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
@@ -42,23 +38,11 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
   protected val noContent: Int by lazy { HttpResponseStatus.NO_CONTENT.code() }
   protected val created: Int by lazy { HttpResponseStatus.CREATED.code() }
 
-  init {
-    val launch = GlobalScope.launch {
-      val vertx = Vertx.vertx()
-      oauthToken(vertx)
-    }
-    runBlocking {
-      // wait the config
-      launch.join()
-    }
-  }
-
-
   /**
    * Get token by password method.
    * Client must support password grant type.
    */
-  protected suspend fun oauthToken(vertx: Vertx) {
+  protected fun oauthToken(vertx: Vertx): Future<HttpResponse<Buffer>> {
     val clientId = webConfig.oauth("client-id")
     val clientSecret = webConfig.oauth("client-secret")
     val secret = "Basic " + String(Base64.getEncoder().encode("$clientId:$clientSecret".toByteArray()))
@@ -70,25 +54,25 @@ open class OauthHelper(var username: String = "admin", var password: String = "1
     form["password"] = password
     form["grant_type"] = "password"
     form["scope"] = webConfig.oauth("scope")
-    val response =
-      oauthServer.postAbs(webConfig.oauth("server") + webConfig.oauth("token"))
-        .sendFormAwait(form)
-    val result = response.bodyAsJsonObject()
-    token = result.getString("access_token")
-    val options = WebClientOptions()
-    options.defaultHost = "localhost"
-    options.defaultPort = 9000
-    client = WebClientSession.create(WebClient.create(vertx, options))
-    client.addHeader(HttpHeaderNames.AUTHORIZATION.toString(), "Bearer $token")
+    return oauthServer.postAbs(webConfig.oauth("server") + webConfig.oauth("token"))
+      .sendForm(form).onSuccess { response ->
+        val result = response.bodyAsJsonObject()
+        token = result.getString("access_token")
+        val options = WebClientOptions()
+        options.defaultHost = "localhost"
+        options.defaultPort = 9000
+        client = WebClientSession.create(WebClient.create(vertx, options))
+        client.addHeader(HttpHeaderNames.AUTHORIZATION.toString(), "Bearer $token")
+      }
   }
 
   @BeforeEach
   fun deploy(vertx: Vertx, testContext: VertxTestContext) {
     val web = vertx.deployVerticle(WebVerticle(), DeploymentOptions().setConfig(webConfig))
     val database = vertx.deployVerticle(DatabaseVerticle(), DeploymentOptions().setConfig(databaseConfig))
-
-    CompositeFuture.all(web, database).onSuccess {
-      TODO("Waiting for fixed next handler.")
+    val oauthToken = oauthToken(vertx)
+    CompositeFuture.all(web, database, oauthToken).onSuccess {
+      testContext.completeNow()
     }
   }
 
