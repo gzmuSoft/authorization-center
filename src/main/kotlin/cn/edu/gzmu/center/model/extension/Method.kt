@@ -69,12 +69,12 @@ internal fun Tuple.addOrNull(value: Any?): Tuple =
   else this.addValue(value)
 
 /**
- * Get Singleton kotnlin json.
+ * Get Singleton kotlinx json.
  */
 object KotlinJson {
 
   @OptIn(UnstableDefault::class)
-  private val json = Json(JsonConfiguration(strictMode = false))
+  private val json = Json(JsonConfiguration.Default.copy(ignoreUnknownKeys = true))
 
   fun json() = json
 

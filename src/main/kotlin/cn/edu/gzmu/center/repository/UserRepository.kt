@@ -133,15 +133,17 @@ class UserRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), UserR
         Tuple.of(user.name, user.email, user.phone, user.modifyTime, user.modifyUser, user.id)
       )
       // See cn.edu.gzmu.center.other.JsonTest.listTest
-      val roles = body.getJsonArray("roleIds").toList()
+      val roles = body.getJsonArray("roleIds", JsonArray()).toList()
       val existRoles = transaction.preparedQueryAwait(USER_ONE_ROLE, Tuple.of(user.id))
         .map { it.getLong("id") }
       // Delete user role association
       val deleteParams = existRoles.subtract(roles).map { Tuple.of(user.id, it) }
       transaction.preparedBatchAwait(USER_ROLE_DELETE, deleteParams)
+      log.debug("Delete roles: {}", existRoles.joinToString(","))
       // Add user role association
       val addParams = roles.subtract(existRoles).map { Tuple.of(user.id, it) }
       transaction.preparedBatchAwait(USER_ROLE_ADD, addParams)
+      log.debug("Add roles: {}", addParams.joinToString(","))
       transaction.commitAwait()
       message.reply("Success")
     } catch (e: Exception) {

@@ -71,7 +71,7 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(pool),
           JOIN cte c ON c.parent_id = d.id
           where d.is_enable = true
       )
-      SELECT id, name, parent_id, type
+      SELECT DISTINCT id, name, parent_id, type
       FROM cte
       ORDER BY type
     """.trimIndent()
@@ -126,7 +126,7 @@ class EveryRepositoryImpl(private val pool: PgPool) : BaseRepository(pool),
           "parentId" to row.getLong("parent_id")
         )
       }
-      log.debug("Success get sys data: {}", result)
+      log.debug("Success get sys data: {}", result.size)
       message.reply(jsonObjectOf(
         "result" to result,
         "name" to result.joinToString(" / ") { row -> row.getString("name") }

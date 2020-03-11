@@ -31,7 +31,7 @@ val jbcryptVersion by extra { "0.4" }
 
 dependencies {
   implementation(kotlin("reflect"))
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
   implementation("org.mindrot:jbcrypt:$jbcryptVersion")
   implementation("io.vertx:vertx-web-client")
   implementation("io.vertx:vertx-auth-jwt")

@@ -21,7 +21,7 @@ class UserHandler(router: Router, private val eventBus: EventBus) : BaseHandler(
       .handler { Address.parameterHandler.requireJson(it, "id", "userId") }
       .handler { handlerPatch(it, SysUser.ADDRESS_USER_PASSWORD) }
     router.patch("/user")
-      .handler { Address.parameterHandler.requireJson(it, "id", "name", "email", "phone", "roleIds") }
+      .handler { Address.parameterHandler.requireJson(it, "id", "name", "email", "phone") }
       .handler { handlerPatch(it, SysUser.ADDRESS_USER_UPDATE) }
     router.post("/user/exist").handler(this::userExist)
   }

@@ -20,9 +20,8 @@ import org.junit.jupiter.api.Test
 class StudentHandlerTest : OauthHelper() {
   @Test
   internal fun `Student classmate test when passed`(vertx: Vertx, testContext: VertxTestContext) {
-    GlobalScope.launch {
-      username = "student"
-      oauthToken(vertx)
+    username = "student"
+    oauthToken(vertx).onSuccess {
       client.get("/student/me")
         .send {
           resultCheck(testContext, it)

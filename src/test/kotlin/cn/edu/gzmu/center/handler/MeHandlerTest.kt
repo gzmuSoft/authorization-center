@@ -67,9 +67,8 @@ internal class MeHandlerTest : OauthHelper() {
 
   @Test
   internal fun `Get teacher info when passed`(vertx: Vertx, testContext: VertxTestContext) {
-    GlobalScope.launch {
-      username = "teacher"
-      oauthToken(vertx)
+    username = "teacher"
+    oauthToken(vertx).onSuccess {
       client.get("/me/info")
         .send {
           resultCheck(testContext, it)
