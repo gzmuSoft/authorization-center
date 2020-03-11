@@ -14,11 +14,17 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions
 import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.ext.consul.CheckOptions
+import io.vertx.ext.consul.ConsulClient
+import io.vertx.ext.consul.ServiceOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
+import io.vertx.kotlin.ext.consul.deregisterServiceAwait
+import io.vertx.kotlin.ext.consul.registerCheckAwait
+import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.RuntimeException
@@ -32,6 +38,8 @@ import java.lang.RuntimeException
 class WebVerticle : CoroutineVerticle() {
 
   private val log: Logger = LoggerFactory.getLogger(WebVerticle::class.java.name)
+  private lateinit var consulClient: ConsulClient
+  private lateinit var name: String
 
   /**
    * Will get config from application.conf and start Web server.
@@ -42,6 +50,7 @@ class WebVerticle : CoroutineVerticle() {
     router.route().handler(::beforeHandler)
     val server = config.getJsonObject(SERVER)
     val eventBus = vertx.eventBus()
+    name = config.getString("name")
     OauthHandler(
       OAuth2Auth.create(vertx, oauthConfig()),
       router, config.getJsonObject(OAUTH), eventBus
@@ -58,6 +67,30 @@ class WebVerticle : CoroutineVerticle() {
           log.error("Failed start server......", it.cause())
         }
       }
+    consulClient = ConsulClient.create(vertx)
+    val checkOptions = CheckOptions(
+      jsonObjectOf(
+        "http" to "http://127.0.0.1:8889/status",
+        "interval" to "30s",
+        "serviceId" to name,
+        "name" to name
+      )
+    )
+    val serviceOptions = ServiceOptions(
+      jsonObjectOf(
+        "name" to name,
+        "id" to name,
+        "checkOptions" to checkOptions
+      )
+    )
+    consulClient.registerService(serviceOptions)
+      .onSuccess {
+        launch {
+          consulClient.registerCheckAwait(checkOptions)
+          log.info("Success service {} register to consul.", name)
+        }
+      }
+      .onFailure { log.warn("Failed service {} register to consul: {}", name, it.cause?.message) }
     vertx.exceptionHandler {
       it.printStackTrace()
       throw it
@@ -122,6 +155,8 @@ class WebVerticle : CoroutineVerticle() {
     )
 
   override suspend fun stop() {
+    consulClient.deregisterServiceAwait(name)
+    log.info("Success deregister service {}.", name)
     log.info("Success stop web verticle......")
   }
 }

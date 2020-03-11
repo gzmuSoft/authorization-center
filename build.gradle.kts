@@ -45,7 +45,6 @@ dependencies {
   implementation("io.vertx:vertx-consul-client")
   implementation("io.vertx:vertx-lang-kotlin")
   implementation("io.vertx:vertx-consul-client")
-  implementation("com.typesafe:config:1.4.0")
   implementation("org.apache.logging.log4j:log4j-slf4j18-impl:$log4j2Version")
   implementation("com.google.guava:guava:$guavaVersion")
   testImplementation("io.vertx:vertx-junit5")

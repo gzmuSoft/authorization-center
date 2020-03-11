@@ -21,6 +21,7 @@ object Config {
     "schema" to "test"
   )
   val web: JsonObject = jsonObjectOf(
+    "name" to "auth-center-web-test",
     "server" to jsonObjectOf("port" to 9000),
     "oauth" to jsonObjectOf(
       "server" to "http://118.24.1.170:8888",

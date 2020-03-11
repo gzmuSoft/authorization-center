@@ -54,6 +54,7 @@ class OauthHandler(
   private val matcher: AntPathMatcher = AntPathMatcher()
 
   init {
+    router.route("/status").handler(::status)
     router.get("/oauth/server").handler(::server)
     router.post("/oauth/token").handler(::token)
     router.get("/oauth/logout").handler(::logoutUrl)
@@ -66,6 +67,13 @@ class OauthHandler(
     router.route().handler(::authentication)
     router.route().handler(::userInfo)
     router.get("/oauth/me").handler(::me)
+  }
+
+  private fun status(context: RoutingContext) {
+    log.debug("Health check.")
+    context.end(jsonObjectOf(
+      "status" to "UP"
+    ).toBuffer())
   }
 
   /**
