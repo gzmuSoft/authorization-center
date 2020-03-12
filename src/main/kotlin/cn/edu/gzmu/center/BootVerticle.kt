@@ -17,7 +17,7 @@ fun main() {
   Vertx.vertx().deployVerticle(BootVerticle())
 }
 
-private class BootVerticle : AbstractVerticle() {
+class BootVerticle : AbstractVerticle() {
   companion object {
     private const val CONF_KEY = "configuration"
     private const val INSTANCES_KEY = "instances"
@@ -55,6 +55,7 @@ private class BootVerticle : AbstractVerticle() {
 
   override fun stop(stopFuture: Promise<Void>?) {
     vertx.deploymentIDs().forEach { vertx.undeploy(it) }
+    stopFuture?.complete()
   }
 
   private fun deployVerticle(config: JsonObject): Future<String> {

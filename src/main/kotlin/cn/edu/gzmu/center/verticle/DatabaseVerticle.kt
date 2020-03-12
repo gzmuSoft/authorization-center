@@ -5,7 +5,6 @@ import cn.edu.gzmu.center.model.address.Me
 import cn.edu.gzmu.center.model.address.Oauth
 import cn.edu.gzmu.center.model.entity.*
 import cn.edu.gzmu.center.repository.*
-import io.vertx.core.Promise
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
