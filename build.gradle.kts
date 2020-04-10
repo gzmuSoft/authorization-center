@@ -2,10 +2,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
-  kotlin("jvm") version "1.3.70"
-  kotlin("plugin.serialization") version "1.3.70"
-  id("io.vertx.vertx-plugin") version "1.0.1"
-  id("org.jetbrains.dokka") version "0.10.0"
+  kotlin("jvm") version "1.3.71"
+  kotlin("plugin.serialization") version "1.3.71"
+  id("io.vertx.vertx-plugin") version "1.0.2"
+  id("org.jetbrains.dokka") version "0.10.1"
 }
 
 group = "cn.edu.gzmu.center"
