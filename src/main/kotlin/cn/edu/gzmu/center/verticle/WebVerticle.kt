@@ -8,9 +8,11 @@ import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.model.address.Oauth
 import cn.edu.gzmu.center.model.address.Oauth.Companion.OAUTH
 import cn.edu.gzmu.center.model.address.Oauth.Companion.SERVER
+import com.google.common.net.HttpHeaders
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.http.HttpMethod
 import io.vertx.ext.auth.oauth2.OAuth2Auth
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions
 import io.vertx.ext.auth.oauth2.OAuth2FlowType
@@ -20,6 +22,7 @@ import io.vertx.ext.consul.ServiceOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.ext.consul.deregisterServiceAwait
@@ -48,6 +51,27 @@ class WebVerticle : CoroutineVerticle() {
     val router = Router.router(vertx)
     router.route().handler(BodyHandler.create())
     router.route().handler(::beforeHandler)
+    router.route().handler(
+      CorsHandler.create("*")
+        .allowCredentials(true)
+        .allowedMethods(
+          setOf(
+            HttpMethod.GET, HttpMethod.POST, HttpMethod.PATCH,
+            HttpMethod.PUT, HttpMethod.OPTIONS, HttpMethod.DELETE
+          )
+        ).allowedHeaders(
+          mutableSetOf(
+            HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+            HttpHeaders.X_REQUESTED_WITH,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.AUTHORIZATION,
+            HttpHeaders.ACCEPT
+          )
+        )
+    )
     val server = config.getJsonObject(SERVER)
     val eventBus = vertx.eventBus()
     name = config.getString("name")
