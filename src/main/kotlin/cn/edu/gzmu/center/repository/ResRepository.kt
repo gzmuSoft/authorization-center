@@ -59,11 +59,21 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(pool), ResRe
     when (type) {
       // Get menu —— name is route, url is menu name, method is menu icon, remark is mark
       1L -> sqlGet.and("remark IS NOT NULL")
+        .and("name IS NOT NULL")
+        .and("url IS NOT NULL")
+        .and("method IS NOT NULL")
       // Get resource —— name and remark is null
       2L -> sqlGet.and("remark IS NULL")
         .and("name IS NUll")
       // Get route —— name is route, url is null, others is default.
-      3L -> sqlGet.and("url IS NULL")
+      3L -> sqlGet.and("remark IS NULL")
+        .and("url IS NULL")
+        .and("name IS NOT NULL")
+      // Get resource action —— name、remark、method are not null.
+      4L -> sqlGet.and("remark IS NOT NULL")
+        .and("name IS NOT NULL")
+        .and("method IS NOT NULL")
+        .and("url IS NULL")
     }
     var connection: SqlConnection? = null
     try {

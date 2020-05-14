@@ -6,6 +6,7 @@ database:
     host: 127.0.0.1
     database: gzmu
     user: postgres
+#    password: "147258369"
     password: "123456"
     maxSize: 5
 web:

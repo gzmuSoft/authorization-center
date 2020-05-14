@@ -21,7 +21,7 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
     private const val RESOURCE = "/student"
   }
   init {
-    router.get("${RESOURCE}/me")
+    router.get("$RESOURCE/me")
       .handler {
         handlerGet<JsonObject, JsonObject>(it, Student.ADDRESS_STUDENT_ME, this::studentMe)
       }
@@ -35,7 +35,7 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
       .handler { handlerPatch(it, Student.ADDRESS_STUDENT_UPDATE) }
     router.get(RESOURCE)
       .handler { handlerPage(it, Student.ADDRESS_STUDENT_PAGE, this::studentPage) }
-    router.patch("${RESOURCE}/complete")
+    router.patch("$RESOURCE/complete")
       .handler {
         Address.parameterHandler.requireJson(
           it, "id", "name", "no", "gender", "enterDate", "birthday", "idNumber",
@@ -50,7 +50,7 @@ class StudentHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus)
         )
       }
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_ADD) }
-    router.post("${RESOURCE}/import")
+    router.post("$RESOURCE/import")
       .handler { handlerCreate(it, Student.ADDRESS_STUDENT_IMPORT) }
   }
   /**
