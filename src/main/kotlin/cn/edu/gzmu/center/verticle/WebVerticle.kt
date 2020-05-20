@@ -4,6 +4,7 @@ import cn.edu.gzmu.center.handler.*
 import cn.edu.gzmu.center.model.BadRequestException
 import cn.edu.gzmu.center.model.ForbiddenException
 import cn.edu.gzmu.center.model.UnauthorizedException
+import cn.edu.gzmu.center.model.address.API_INFO
 import cn.edu.gzmu.center.model.extension.oauth
 import cn.edu.gzmu.center.model.address.Oauth
 import cn.edu.gzmu.center.model.address.Oauth.Companion.OAUTH
@@ -50,28 +51,8 @@ class WebVerticle : CoroutineVerticle() {
   override suspend fun start() {
     val router = Router.router(vertx)
     router.route().handler(BodyHandler.create())
+    router.route().handler(corsHandler())
     router.route().handler(::beforeHandler)
-    router.route().handler(
-      CorsHandler.create("*")
-        .allowCredentials(true)
-        .allowedMethods(
-          setOf(
-            HttpMethod.GET, HttpMethod.POST, HttpMethod.PATCH,
-            HttpMethod.PUT, HttpMethod.OPTIONS, HttpMethod.DELETE
-          )
-        ).allowedHeaders(
-          mutableSetOf(
-            HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-            HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
-            HttpHeaders.X_REQUESTED_WITH,
-            HttpHeaders.CONTENT_TYPE,
-            HttpHeaders.AUTHORIZATION,
-            HttpHeaders.ACCEPT
-          )
-        )
-    )
     val server = config.getJsonObject(SERVER)
     val eventBus = vertx.eventBus()
     name = config.getString("name")
@@ -86,9 +67,9 @@ class WebVerticle : CoroutineVerticle() {
       .requestHandler(router)
       .listen(server.getInteger("port", 8888)) {
         if (it.succeeded()) {
-          log.info("Success start server on port {}......", server.getInteger("port", 8888))
+          log.info("Success start server on port {}.", server.getInteger("port", 8888))
         } else {
-          log.error("Failed start server......", it.cause())
+          log.error("Failed start server.", it.cause())
         }
       }
     consulClient = ConsulClient.create(vertx)
@@ -132,6 +113,7 @@ class WebVerticle : CoroutineVerticle() {
     TeacherHandler(router, eventBus)
     UserHandler(router, eventBus)
     ClientHandler(router, eventBus)
+    DashboardHandler(router, eventBus)
   }
 
   /**
@@ -140,8 +122,35 @@ class WebVerticle : CoroutineVerticle() {
    */
   private fun beforeHandler(context: RoutingContext) {
     context.response().putHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+    val uri = context.request().path()
+    val eventBus = vertx.eventBus()
+    eventBus.send(API_INFO, uri)
     context.next()
   }
+
+  /**
+   * Cors handler.
+   */
+  private fun corsHandler() =
+    CorsHandler.create("*")
+      .allowCredentials(true)
+      .allowedMethods(
+        setOf(
+          HttpMethod.GET, HttpMethod.POST, HttpMethod.PATCH,
+          HttpMethod.PUT, HttpMethod.OPTIONS, HttpMethod.DELETE
+        )
+      ).allowedHeaders(
+        mutableSetOf(
+          HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD,
+          HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
+          HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+          HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+          HttpHeaders.X_REQUESTED_WITH,
+          HttpHeaders.CONTENT_TYPE,
+          HttpHeaders.AUTHORIZATION,
+          HttpHeaders.ACCEPT
+        )
+      )
 
   /**
    * All exception must be use

@@ -1,5 +1,6 @@
 package cn.edu.gzmu.center.verticle
 
+import cn.edu.gzmu.center.model.address.DASHBOARD_INFO
 import cn.edu.gzmu.center.model.address.Every
 import cn.edu.gzmu.center.model.address.Me
 import cn.edu.gzmu.center.model.address.Oauth
@@ -41,13 +42,19 @@ class DatabaseVerticle : CoroutineVerticle() {
       dataRepository()
       userRepository()
       clientRepository()
-      log.info("Success start database verticle......")
+      dashboardRepository()
+      log.info("Success start database verticle.")
       vertx.exceptionHandler {
         it.printStackTrace()
       }
     } catch (e: Exception) {
-      log.error("Failed start database verticle!", e.cause)
+      log.error("Failed start database verticle! {}", e.cause)
     }
+  }
+
+  private fun dashboardRepository() {
+    val dashboardRepository: DashboardRepository = DashboardRepositoryImpl(pool)
+    eventBus.localConsumer<Unit>(DASHBOARD_INFO) { launch { dashboardRepository.dashboard(it) }}
   }
 
   private fun clientRepository() {

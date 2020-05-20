@@ -27,3 +27,7 @@ web:
       logout-uri: /oauth/logout
       logout-redirect-url: http://127.0.0.1:8081/#/logout
       security: false
+reids:
+  name: cn.edu.gzmu.center.verticle.RedisVerticle
+  configuration:
+    name: auth-center-redis
