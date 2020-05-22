@@ -1,0 +1,6 @@
+[submodule "authorization-center-ui"]
+	path = authorization-center-ui
+	url = https://github.com/gzmuSoft/authorization-center-ui
+[submodule "authorization-server"]
+	path = authorization-server
+	url = https://github.com/gzmuSoft/authorization-server
