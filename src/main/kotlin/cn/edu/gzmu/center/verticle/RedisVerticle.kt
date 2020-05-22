@@ -1,11 +1,9 @@
 package cn.edu.gzmu.center.verticle
 
-import cn.edu.gzmu.center.model.address.API_INFO
-import cn.edu.gzmu.center.model.address.API_NUMBER
-import cn.edu.gzmu.center.model.address.API_URL
-import cn.edu.gzmu.center.model.address.GET_API_INFO
+import cn.edu.gzmu.center.model.address.*
 import io.vertx.core.CompositeFuture
 import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonArray
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.redis.client.*
@@ -33,6 +31,7 @@ class RedisVerticle : CoroutineVerticle() {
       log.info("Success start redis connection.")
       eventBus.localConsumer<String>(API_INFO) { launch { this@RedisVerticle.updateApiInfo(it) } }
       eventBus.localConsumer(GET_API_INFO, ::getApiInfo)
+      eventBus.localConsumer<Unit>(DASHBOARD_DATE_INFO) { launch { this@RedisVerticle.getDateInfo(it) } }
     } catch (e: Exception) {
       log.error("Failed start redis connection: {}", e.localizedMessage)
     }
@@ -51,19 +50,26 @@ class RedisVerticle : CoroutineVerticle() {
     }
   }
 
-  private fun getApiInfo(message: Message<Unit>) {
-    val apiNumberFuture = redisAPI.get(API_NUMBER)
-    val authorizationServerApiUrlFuture = redisAPI.llen("authorization_server_api_url")
-    CompositeFuture.all(apiNumberFuture, authorizationServerApiUrlFuture)
+  private fun getApiInfo(message: Message<String>) {
+    val username = message.body()
+    CompositeFuture.all(
+      listOf(
+        redisAPI.get(API_NUMBER), redisAPI.llen("authorization_server_api_url"),
+        redisAPI.get("success:$username"), redisAPI.get("failure:$username"),
+        redisAPI.get("login_success_api_number"), redisAPI.get("login_failure_api_number")
+      )
+    )
       .onComplete { ar ->
         if (ar.succeeded()) {
           val future = ar.result()
-          val apiNumber = future.resultAt<Response>(0).toLong()
-          val authorizationServerApiUrl = future.resultAt<Response>(1).toLong()
           message.reply(
             jsonObjectOf(
-              "apiNumber" to apiNumber,
-              "authorizationServerApiUrl" to authorizationServerApiUrl
+              "apiNumber" to future.resultAt<Response>(0).toSafeLong(),
+              "authorizationServerApiNumber" to future.resultAt<Response>(1).toSafeLong(),
+              "userSuccessLogin" to future.resultAt<Response>(2).toSafeLong(),
+              "userFailureLogin" to future.resultAt<Response>(3).toSafeLong(),
+              "loginSuccess" to future.resultAt<Response>(4).toSafeLong(),
+              "loginFailure" to future.resultAt<Response>(5).toSafeLong()
             )
           )
         } else {
@@ -71,6 +77,33 @@ class RedisVerticle : CoroutineVerticle() {
         }
       }
   }
+
+  private suspend fun getDateInfo(message: Message<Unit>) {
+    try {
+      message.reply(
+        jsonObjectOf(
+          "dateApi" to keyNumber("authorization_server_data_api_number"),
+          "loginDateApi" to keyNumber("authorization_server_data_login_api_number")
+        )
+      )
+    } catch (e: Exception) {
+      message.fail(500, e.localizedMessage)
+      throw e
+    }
+  }
+
+  private suspend fun keyNumber(key: String): JsonArray {
+    var list = redisAPI.keysAwait("$key*")?.toList() ?: emptyList()
+    list = list.sortedByDescending { it.toString() }
+    if (list.size > 7) list = list.subList(0, 7)
+    return JsonArray(list.map {
+      jsonObjectOf(
+        it.toString()
+          .substringAfter("$key=") to (redisAPI.getAwait(it.toString()).toSafeLong())
+      )
+    })
+  }
 }
 
+fun Response?.toSafeLong() = this?.toLong() ?: 0
 
