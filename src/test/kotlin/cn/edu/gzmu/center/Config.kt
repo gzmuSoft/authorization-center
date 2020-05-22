@@ -38,4 +38,8 @@ object Config {
       "security" to false
     )
   )
+  val redis: JsonObject = jsonObjectOf(
+    "name" to "auth-center-redis",
+    "url" to "redis://:GZMU147258369@118.24.1.170:6379/0"
+  )
 }

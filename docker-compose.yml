@@ -29,6 +29,8 @@ services:
     image: redis
     networks:
       - auth
+    ports:
+      - 6379:6379
   auth-db:
     container_name: auth-db
     image: postgres
@@ -42,18 +44,6 @@ services:
     environment:
       POSTGRES_USER: gzmu
       POSTGRES_PASSWORD: 147258369
-  auth-center:
-    container_name: auth-center
-    build:
-      context: .
-      dockerfile: simple.dockerfile
-    depends_on:
-      - auth-db
-      - auth-consul-server-bootstrap
-    networks:
-      - auth
-    ports:
-      - 8889:8889
   auth-server:
     container_name: auth-server
     build:
@@ -61,11 +51,34 @@ services:
       dockerfile: simple.dockerfile
     depends_on:
       - auth-db
+      - auth-redis
       - auth-consul-server-bootstrap
     networks:
       - auth
     ports:
       - 8888:8888
+  auth-center:
+    container_name: auth-center
+    build:
+      context: .
+      dockerfile: simple.dockerfile
+    depends_on:
+      - auth-server
+    networks:
+      - auth
+    ports:
+      - 8889:8889
+  auth-center-ui:
+    container_name: auth-center-ui
+    build:
+      context: ./authorization-center-ui
+      dockerfile: Dockerfile
+    networks:
+      - ui
+    depends_on:
+      - auth-center
+    ports:
+      - 9999:9999
 networks:
   auth:
   ui:

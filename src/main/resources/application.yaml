@@ -31,3 +31,4 @@ reids:
   name: cn.edu.gzmu.center.verticle.RedisVerticle
   configuration:
     name: auth-center-redis
+    url: redis://:GZMU147258369@118.24.1.170:6379/0
