@@ -1,0 +1,71 @@
+version: "3.7"
+services:
+  auth-consul-agent-1: &consul-agent
+    image: consul:latest
+    networks:
+      - auth
+    command: "agent -retry-join auth-consul-server-bootstrap -client 0.0.0.0"
+  auth-consul-agent-2:
+    <<: *consul-agent
+    container_name: auth-consul-agent-2
+  auth-consul-agent-3:
+    container_name: auth-consul-agent-3
+    <<: *consul-agent
+  auth-consul-server-1: &consul-server
+    container_name: auth-consul-server-1
+    <<: *consul-agent
+    command: "agent -server -retry-join auth-consul-server-bootstrap -client 0.0.0.0"
+  auth-consul-server-2:
+    container_name: auth-consul-server-2
+    <<: *consul-server
+  auth-consul-server-bootstrap:
+    <<: *consul-agent
+    container_name: auth-consul-server-bootstrap
+    ports:
+      - "8500:8500"
+    command: "agent -server -bootstrap-expect 3 -ui -client 0.0.0.0"
+  auth-redis:
+    container_name: auth-redis
+    image: redis
+    networks:
+      - auth
+  auth-db:
+    container_name: auth-db
+    image: postgres
+    networks:
+      - auth
+    volumes:
+      - ./docker/postgres/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: gzmu
+      POSTGRES_PASSWORD: 147258369
+  auth-center:
+    container_name: auth-center
+    build:
+      context: .
+      dockerfile: simple.dockerfile
+    depends_on:
+      - auth-db
+      - auth-consul-server-bootstrap
+    networks:
+      - auth
+    ports:
+      - 8889:8889
+  auth-server:
+    container_name: auth-server
+    build:
+      context: ./authorization-server
+      dockerfile: simple.dockerfile
+    depends_on:
+      - auth-db
+      - auth-consul-server-bootstrap
+    networks:
+      - auth
+    ports:
+      - 8888:8888
+networks:
+  auth:
+  ui:

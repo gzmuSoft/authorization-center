@@ -67,6 +67,9 @@ tasks {
     kotlinOptions.jvmTarget = "11"
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
   }
+  shadowJar {
+    archiveFileName.set("authorization-center.jar")
+  }
 }
 
 tasks.withType<Test> {
