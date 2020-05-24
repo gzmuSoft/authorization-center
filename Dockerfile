@@ -9,4 +9,4 @@ RUN mkdir /app
 COPY --from=build /home/gradle/src/build/libs/ /app/
 EXPOSE 8889
 
-ENTRYPOINT ["java","-jar","/app/auth-center.jar", "--spring.profiles.active=prod"]
+ENTRYPOINT ["java","-jar","/app/auth-center.jar", "-Dconfig=application-prod.yaml"]

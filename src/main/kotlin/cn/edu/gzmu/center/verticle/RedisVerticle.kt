@@ -3,7 +3,7 @@ package cn.edu.gzmu.center.verticle
 import cn.edu.gzmu.center.model.address.*
 import io.vertx.core.CompositeFuture
 import io.vertx.core.eventbus.Message
-import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.redis.client.*
@@ -92,16 +92,14 @@ class RedisVerticle : CoroutineVerticle() {
     }
   }
 
-  private suspend fun keyNumber(key: String): JsonArray {
+  private suspend fun keyNumber(key: String): JsonObject {
     var list = redisAPI.keysAwait("$key*")?.toList() ?: emptyList()
     list = list.sortedByDescending { it.toString() }
     if (list.size > 7) list = list.subList(0, 7)
-    return JsonArray(list.map {
-      jsonObjectOf(
-        it.toString()
-          .substringAfter("$key=") to (redisAPI.getAwait(it.toString()).toSafeLong())
-      )
-    })
+    return JsonObject(list.associateBy(
+      { it.toString().substringAfter("$key=") },
+      { redisAPI.getAwait(it.toString()).toSafeLong() }
+    ))
   }
 }
 

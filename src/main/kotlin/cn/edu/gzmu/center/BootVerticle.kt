@@ -32,7 +32,7 @@ class BootVerticle : AbstractVerticle() {
     val configStoreOptions = ConfigStoreOptions()
       .setType("file")
       .setFormat("yaml")
-      .setConfig(jsonObjectOf("path" to "application.yaml"))
+      .setConfig(jsonObjectOf("path" to config().getString("config", "application.yaml")))
     val retriever = ConfigRetriever.create(
       vertx,
       ConfigRetrieverOptions().addStore(configStoreOptions)
