@@ -65,10 +65,10 @@ class ClientRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), Cli
     val body = message.body()
     val client = body.mapAs(Client.serializer())
     val tuple = Tuple.of(
-      client.name, client.clientId, client.resourceIds, encodePassword(client.clientSecret ?: "0"),
+      client.name, client.clientId, client.resourceIds, encodePassword(client.spell ?: "0"),
       client.scope, client.grantTypes, client.accessTokenValidity, client.refreshTokenValidity,
       client.redirectUrl, client.sort, client.remark, client.modifyTime, client.createUser,
-      client.isEnable, client.clientSecret ?: "000000"
+      client.isEnable, client.spell ?: "000000"
     )
     val (sql, params) =
       if (Objects.isNull(client.id)) Pair(CLIENT_INSERT, tuple)

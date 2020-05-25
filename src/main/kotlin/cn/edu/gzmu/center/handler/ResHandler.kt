@@ -26,6 +26,8 @@ class ResHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
       .handler { handlerPatch(it, AuthCenterRes.ADDRESS_RES_UPDATE) }
     router.delete("/res/:id")
       .handler { handlerDelete(it, AuthCenterRes.ADDRESS_RES_DELETE) }
+    router.post("/res/:id")
+      .handler { handlerDelete(it, AuthCenterRes.ADDRESS_RES_ENABLE) }
     router.post("/res")
       .handler { handlerCreate(it, AuthCenterRes.ADDRESS_RES_CREATE) }
   }

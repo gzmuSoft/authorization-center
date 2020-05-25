@@ -23,6 +23,9 @@ class RoleHandler(router: Router, eventBus: EventBus) : BaseHandler(eventBus) {
     router.patch("/role")
       .handler { Address.parameterHandler.requireJson(it, "id") }
       .handler { handlerPatch(it, SysRole.ADDRESS_ROLE_UPDATE) }
+    router.post("/role")
+      .handler { Address.parameterHandler.requireJson(it, "parent_id") }
+      .handler { handlerPatch(it, SysRole.ADDRESS_ROLE_ADD) }
   }
 
   /**

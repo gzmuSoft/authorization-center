@@ -35,5 +35,6 @@ data class AuthCenterRes(
     const val ADDRESS_RES_CREATE = "address_res_create"
     const val ADDRESS_RES_UPDATE = "address_res_update"
     const val ADDRESS_RES_DELETE = "address_res_delete"
+    const val ADDRESS_RES_ENABLE = "address_res_enable"
   }
 }

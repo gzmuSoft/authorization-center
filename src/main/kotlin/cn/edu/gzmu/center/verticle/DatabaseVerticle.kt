@@ -105,9 +105,11 @@ class DatabaseVerticle : CoroutineVerticle() {
     eventBus.localConsumer(SysRole.ADDRESS_ROLE_PARENT, roleRepository::roleParent)
     eventBus.localConsumer(SysRole.ADDRESS_ROLE_RES, roleRepository::roleRes)
     eventBus.localConsumer(SysRole.ADDRESS_ROLE_UPDATE, roleRepository::roleUpdate)
+    eventBus.localConsumer(SysRole.ADDRESS_ROLE_ADD, roleRepository::roleAdd)
     val resRepository: ResRepository = ResRepositoryIImpl(pool)
     eventBus.localConsumer(AuthCenterRes.ADDRESS_RES_UPDATE, resRepository::resUpdate)
     eventBus.localConsumer(AuthCenterRes.ADDRESS_RES_DELETE, resRepository::resDelete)
+    eventBus.localConsumer(AuthCenterRes.ADDRESS_RES_ENABLE, resRepository::resEnable)
     eventBus.localConsumer(AuthCenterRes.ADDRESS_RES_CREATE, resRepository::resCreate)
     eventBus.localConsumer<JsonObject>(AuthCenterRes.ADDRESS_RES) { launch { resRepository.res(it) } }
   }

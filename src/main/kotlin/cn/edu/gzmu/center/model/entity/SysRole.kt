@@ -32,5 +32,6 @@ data class SysRole(
     const val ADDRESS_ROLE_PARENT = "address_role_parent"
     const val ADDRESS_ROLE_RES = "address_role_res"
     const val ADDRESS_ROLE_UPDATE = "address_role_update"
+    const val ADDRESS_ROLE_ADD = "address_role_add"
   }
 }

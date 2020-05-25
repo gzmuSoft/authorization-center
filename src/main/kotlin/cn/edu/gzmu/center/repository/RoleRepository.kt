@@ -15,6 +15,7 @@ import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.Tuple
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 
 /**
  * .
@@ -39,9 +40,21 @@ interface RoleRepository {
    * Update role.
    */
   fun roleUpdate(message: Message<JsonObject>)
+
+  /**
+   * Add role.
+   */
+  fun roleAdd(message: Message<JsonObject>)
 }
 
 class RoleRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), RoleRepository {
+  companion object {
+    private const val ROLE_ADD = """
+      INSERT INTO sys_role (name, des, icon_cls, parent_id, create_user, create_time,
+      modify_user, modify_time, is_enable, remark) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    """
+  }
+
   private val log: Logger = LoggerFactory.getLogger(RoleRepositoryImpl::class.java.name)
   override fun roleParent(message: Message<Long>) {
     val parentId = message.body()
@@ -101,6 +114,21 @@ class RoleRepositoryImpl(private val pool: PgPool) : BaseRepository(pool), RoleR
       .addOptional(role.iconCls).addOptional(role.sort).addOptional(role.remark)
       .addOptional(role.isEnable).addOptional(role.id)
     pool.preparedQuery(sql, tuple) {
+      messageException(message, it)
+      log.debug("Success update role: {}", role)
+      message.reply("success")
+    }
+  }
+
+  override fun roleAdd(message: Message<JsonObject>) {
+    val role = message.body().mapAs(SysRole.serializer())
+    pool.preparedQuery(
+      ROLE_ADD, Tuple.of(
+        role.name, role.des, role.iconCls, role.parentId,
+        role.createUser, role.createTime, role.modifyUser,
+        role.modifyTime, role.isEnable, role.remark
+      )
+    ) {
       messageException(message, it)
       log.debug("Success update role: {}", role)
       message.reply("success")

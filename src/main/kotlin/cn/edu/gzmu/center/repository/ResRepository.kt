@@ -45,11 +45,21 @@ interface ResRepository {
    * res delete.
    */
   fun resDelete(message: Message<Long>)
+
+  /**
+   * res delete.
+   */
+  fun resEnable(message: Message<Long>)
 }
 
 class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(pool), ResRepository {
   private val log: Logger = LoggerFactory.getLogger(ResRepositoryIImpl::class.java.name)
   private val table = "auth_center_res"
+  companion object {
+    private const val RES_ENABLE = """
+      UPDATE auth_center_res SET is_enable = $1 WHERE id = $2
+    """
+  }
   override suspend fun res(message: Message<JsonObject>) {
     val body = message.body()
     val type = body.getLong("type")
@@ -137,15 +147,19 @@ class ResRepositoryIImpl(private val pool: PgPool) : BaseRepository(pool), ResRe
   }
 
   override fun resDelete(message: Message<Long>) {
+    resIsEnable(message, false)
+  }
+
+  override fun resEnable(message: Message<Long>) {
+    resIsEnable(message, true)
+  }
+
+  private fun resIsEnable(message: Message<Long>, enable: Boolean) {
     val id = message.body()
-    val sql = Sql(table)
-      .update().set { "is_enable" }
-      .whereEnable().and { "id" to id }.get()
-    pool.preparedQuery(sql, Tuple.of(false, id)) {
+    pool.preparedQuery(RES_ENABLE, Tuple.of(enable, id)) {
       messageException(message, it)
-      log.debug("Success delete res: {}", id)
+      log.debug("Success update res enable: {}", id)
       message.reply("success")
     }
   }
-
 }
