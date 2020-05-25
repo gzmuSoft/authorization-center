@@ -138,7 +138,7 @@ class DatabaseVerticle : CoroutineVerticle() {
     PgConnectOptions(
       jsonObjectOf(
         "port" to config.getInteger("port", 5432),
-        "host" to config.getString("host", "127.0.0.1"),
+        "host" to "auth-db",
         "database" to config.getString("database", "public"),
         "user" to config.getString("user", "postgres"),
         "password" to config.getString("password", "postgres")

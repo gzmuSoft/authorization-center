@@ -3,11 +3,11 @@ database:
   configuration:
     name: auth-center-db
     port: 5432
-    host: 127.0.0.1
-    database: gzmu
-    user: postgres
-#    password: "147258369"
-    password: "123456"
+    host: auth-db
+    database: auth
+    user: gzmu
+    password: "147258369"
+#    password: "123456"
     maxSize: 5
 web:
   name: cn.edu.gzmu.center.verticle.WebVerticle
@@ -22,13 +22,13 @@ web:
       token-info: /oauth/check_token
       client-id: gzmu-auth
       client-secret: gzmu-auth-secret
-      redirect-uri: http://127.0.0.1:8081/#/login
+      redirect-uri: http://127.0.0.1:8082/#/login
       scope: READ
       logout-uri: /oauth/logout
-      logout-redirect-url: http://127.0.0.1:8081/#/logout
+      logout-redirect-url: http://127.0.0.1:8082/#/logout
       security: false
 reids:
   name: cn.edu.gzmu.center.verticle.RedisVerticle
   configuration:
     name: auth-center-redis
-    url: redis://:GZMU147258369@118.24.1.170:6379/0
+    url: redis://auth-redis:6379/0

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-gradle shadowJar
+docker-compose down
+gradle clean shadowJar
 cd authorization-center-ui
 yarn install
 yarn build
 cd ../authorization-server
-gradle bootJar
+gradle clean bootJar
 cd ..
-docker-compose up
+docker-compose up --build

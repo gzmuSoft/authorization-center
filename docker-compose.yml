@@ -78,7 +78,7 @@ services:
     depends_on:
       - auth-center
     ports:
-      - 8081:9999
+      - 8082:9999
 networks:
   auth:
   ui:

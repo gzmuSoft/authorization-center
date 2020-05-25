@@ -930,7 +930,7 @@ INSERT INTO public.sys_role VALUES (1, 'ROLE_PUBLIC', NULL, '需要登录，但�
 INSERT INTO public.sys_role VALUES (5, 'ROLE_STUDENT', NULL, '学生', 'mdi-mouse', 0, 1, NULL, '2019-12-28 22:49:47', 'admin', '2019-12-28 22:50:29', NULL, true);
 INSERT INTO public.sys_role VALUES (7, 'ROLE_ACADEMIC_OFFICE', NULL, '教务处', 'mdi-mouse', 4, 1, NULL, '2020-02-14 11:25:52', NULL, '2020-02-14 11:25:52', NULL, true);
 INSERT INTO public.sys_role VALUES (9, 'ROLE_DEAN', NULL, '院长', 'mdi-mouse', 4, 1, NULL, '2020-02-14 11:27:21', NULL, '2020-02-14 11:27:21', NULL, true);
-INSERT INTO public.sys_role VALUES (8, 'ROLE_MONITORE', NULL, '班长', 'mdi-mouse', 5, 111, NULL, '2020-02-14 11:26:23', 'admin', '2020-02-14 11:26:23', NULL, true);
+INSERT INTO public.sys_role VALUES (8, 'ROLE_MONITOR', NULL, '班长', 'mdi-mouse', 5, 111, NULL, '2020-02-14 11:26:23', 'admin', '2020-02-14 11:26:23', NULL, true);
 INSERT INTO public.sys_role VALUES (3, 'ROLE_ADMIN', NULL, '管理员', 'mdi-mouse', 0, 1, NULL, '2019-06-23 10:48:42', NULL, '2019-08-07 15:20:27', NULL, true);
 INSERT INTO public.sys_role VALUES (4, 'ROLE_TEACHER', NULL, '教师', 'mdi-mouse', 0, 1, NULL, '2019-06-23 10:48:42', 'admin', '2019-08-07 15:20:27', NULL, true);
 --
@@ -938,6 +938,7 @@ INSERT INTO public.sys_role VALUES (4, 'ROLE_TEACHER', NULL, '教师', 'mdi-mous
 -- Dependencies: 205
 -- Data for Name: auth_center_res; Type: TABLE DATA; Schema: public; Owner: gzmu
 --
+
 
 INSERT INTO public.auth_center_res VALUES (28, 'data', NULL, 'menu.data', '菜单-数据管理', 'mdi-view-dashboard', 2, NULL, '2020-02-13 06:52:26', NULL, '2020-02-13 06:52:26', 'menu.data', true);
 INSERT INTO public.auth_center_res VALUES (7, NULL, NULL, '/base/sysData/type/*', '获取指定类型数据', 'GET', 1, NULL, '2020-02-08 05:39:09', NULL, '2020-02-08 05:39:09', NULL, true);
@@ -997,6 +998,8 @@ INSERT INTO public.auth_center_res VALUES (39, 'student', NULL, 'menu.student', 
 INSERT INTO public.auth_center_res VALUES (37, 'student-admin', NULL, 'menu.studentManagement', '菜单-管理学生信息', 'mdi-view-dashboard', 4, NULL, '2020-02-14 10:24:17', 'admin', '2020-02-14 10:24:17', 'menu.userInfo', true);
 INSERT INTO public.auth_center_res VALUES (38, 'teacher-admin', NULL, 'menu.teacherManagement', '菜单-显示教师信息', 'mdi-view-dashboard', 4, NULL, '2020-02-14 10:24:17', 'admin', '2020-02-14 10:24:17', 'menu.userInfo', true);
 INSERT INTO public.auth_center_res VALUES (60, NULL, NULL, '/dashboard', '获取仪表盘', 'GET', 1, NULL, '2020-05-19 15:19:04', NULL, '2020-05-19 15:19:04', NULL, true);
+INSERT INTO public.auth_center_res VALUES (61, NULL, NULL, '/dashboard/date', '获取仪表盘日期数据', 'GET', 1, NULL, '2020-05-22 18:30:40', NULL, '2020-05-22 18:30:40', NULL, true);
+INSERT INTO public.auth_center_res VALUES (62, NULL, NULL, '/res/*', '启用资源数据', 'POST', 1, NULL, '2020-05-25 06:51:12', NULL, '2020-05-25 06:51:12', NULL, true);
 
 
 --
@@ -1074,6 +1077,8 @@ INSERT INTO public.auth_center_role_res VALUES (68, NULL, NULL, 3, 56, NULL, NUL
 INSERT INTO public.auth_center_role_res VALUES (69, NULL, NULL, 3, 57, NULL, NULL, '2020-02-23 12:26:54', NULL, '2020-02-23 12:26:54', NULL, true);
 INSERT INTO public.auth_center_role_res VALUES (70, NULL, NULL, 3, 58, NULL, NULL, '2020-02-24 06:38:04', NULL, '2020-02-24 06:38:04', NULL, true);
 INSERT INTO public.auth_center_role_res VALUES (72, NULL, NULL, 3, 60, NULL, NULL, '2020-05-19 15:19:25', NULL, '2020-05-19 15:19:25', NULL, true);
+INSERT INTO public.auth_center_role_res VALUES (73, NULL, NULL, 3, 61, NULL, NULL, '2020-05-22 18:31:17', NULL, '2020-05-22 18:31:17', NULL, true);
+INSERT INTO public.auth_center_role_res VALUES (74, NULL, NULL, 3, 62, NULL, NULL, '2020-05-25 06:51:29', NULL, '2020-05-25 06:51:29', NULL, true);
 
 
 --
@@ -1082,8 +1087,8 @@ INSERT INTO public.auth_center_role_res VALUES (72, NULL, NULL, 3, 60, NULL, NUL
 -- Data for Name: client_details; Type: TABLE DATA; Schema: public; Owner: gzmu
 --
 
-INSERT INTO public.client_details VALUES (2, 'End-Of-University', 'End-Of-University', 'End-Of-University', '$2a$12$EKC5ypT//R5mzxQ/Stwul.7i39tZBXmOvL8xyuiQPV3ZWrB3cWdGC', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://127.0.0.1:8081/#/login', NULL, 600000, 6000000, '{"a":"1"}', '', '0d04f678-fbc8-4f47-b0d4-8dc634005874', 1, 'admin', '2019-12-26 22:04:44', NULL, '2019-12-26 22:04:44', '测试1', true);
-INSERT INTO public.client_details VALUES (3, '授权中心', 'gzmu-auth', 'gzmu-auth', '$2a$12$IDY73g8L/jU1.bZ5ylrnpu/4mwY3mZ9E9L2GnSuE/JVjfYQPy.tw6', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://127.0.0.1:8081/#/login', NULL, 600000, 6000000, '{"a":"1"}', '', 'gzmu-auth-secret', 1, NULL, '2019-12-26 22:04:44', NULL, '2019-12-26 22:04:44', '贵州民族大学授权中心', true);
+INSERT INTO public.client_details VALUES (2, 'EOU系统', 'End-Of-University', 'End-Of-University', '$2a$12$EKC5ypT//R5mzxQ/Stwul.7i39tZBXmOvL8xyuiQPV3ZWrB3cWdGC', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://127.0.0.1:8081/#/login', NULL, 600000, 6000000, '{"a":"1"}', '', '0d04f678-fbc8-4f47-b0d4-8dc634005874', 1, 'admin', '2019-12-26 22:04:44', NULL, '2019-12-26 22:04:44', '测试1', true);
+INSERT INTO public.client_details VALUES (3, '授权中心', 'gzmu-auth', 'gzmu-auth', '$2a$12$IDY73g8L/jU1.bZ5ylrnpu/4mwY3mZ9E9L2GnSuE/JVjfYQPy.tw6', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://127.0.0.1:8082/#/login', NULL, 600000, 6000000, '{"a":"1"}', '', 'gzmu-auth-secret', 1, NULL, '2019-12-26 22:04:44', NULL, '2019-12-26 22:04:44', '贵州民族大学授权中心', true);
 INSERT INTO public.client_details VALUES (4, 'test2', 'test', 'test', '$2a$12$zE5sRSfd9nuuw2FwuccjO.ep1uCRRWd4ND8cKfKLZ6Oq1.wXB293G', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://example.com', NULL, 600000, 6000000, '{"a":"1"}', '', 'gzmu-auth-secret', 1, NULL, '2019-12-26 22:04:44', NULL, '2019-12-26 22:04:44', '测试2', true);
 INSERT INTO public.client_details VALUES (1, '云课程', 'lesson-cloud', 'lesson-cloud', '$2a$12$mevxR8T/xecGIrlvgkEqMecoZHbggqzg0efnOOJ/WM8KmJmVj/cQ.', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://127.0.0.1:8081/#/login', NULL, 600000, 6000000, '{"a":"1"}', '', 'lesson-cloud-secret', 1, NULL, '2019-12-23 23:39:07', NULL, '2019-12-23 23:39:07', '云课程在线考试平台', true);
 INSERT INTO public.client_details VALUES (5, '教室考勤系统', 'sf2cs', 'sf2cs', '$2a$12$EKC5ypT//R5mzxQ/Stwul.7i39tZBXmOvL8xyuiQPV3ZWrB3cWdGC', 'READ', 'password,refresh_token,sms,email,authorization_code', 'http://127.0.0.1:8081/#/login', NULL, 600000, 6000000, '{"a":"1"}', '', '0d04f678-fbc8-4f47-b0d4-8dc634005874', 1, 'admin', '2020-02-24 15:48:59', NULL, '2020-02-24 07:48:59', '123123', true);
@@ -1567,7 +1572,7 @@ INSERT INTO public.teacher VALUES (5, '刘永生', 'liú yǒng shēng ', 5, 1, 4
 -- Name: auth_center_res_sql; Type: SEQUENCE SET; Schema: public; Owner: gzmu
 --
 
-SELECT pg_catalog.setval('public.auth_center_res_sql', 60, true);
+SELECT pg_catalog.setval('public.auth_center_res_sql', 63, true);
 
 
 --
@@ -1576,7 +1581,7 @@ SELECT pg_catalog.setval('public.auth_center_res_sql', 60, true);
 -- Name: auth_center_role_res_seq; Type: SEQUENCE SET; Schema: public; Owner: gzmu
 --
 
-SELECT pg_catalog.setval('public.auth_center_role_res_seq', 72, true);
+SELECT pg_catalog.setval('public.auth_center_role_res_seq', 75, true);
 
 
 --
